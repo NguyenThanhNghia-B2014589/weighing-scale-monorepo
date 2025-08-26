@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    /* Type Checking */
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    
+    /* Modules */
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "baseUrl": ".",
+    
+    /* Emit */
+    "outDir": "dist",
+    
+    /* Interop Constraints */
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    
+    /* Language and Environment */
+    "target": "ES2022",
+    "lib": ["es2022"],
+
+    /* Completeness */
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*"], // Chỉ biên dịch các file trong thư mục src
+  "exclude": ["node_modules"]
+}

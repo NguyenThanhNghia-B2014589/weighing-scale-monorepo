@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Ẩn mũi tên tăng/giảm cho trình duyệt Chrome, Safari, Edge, Opera */
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Tự nhiên thấy phóng to lên nó đẹp hơn */
+/* Chỉ phóng to trên màn hình lớn */
+@screen lg { 
+  html {
+    font-size: 175%;
+  }
+}
