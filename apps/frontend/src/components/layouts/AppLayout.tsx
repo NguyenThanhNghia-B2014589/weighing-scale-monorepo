@@ -7,12 +7,9 @@ import Header from '../ui/Header';
 function AppLayout() {
   return (
     // Đây là layout chung cho TOÀN BỘ ứng dụng
-    <div className="min-h-screen bg-sky-200 flex flex-col pt-[70px]">
+    <div className="h-screen bg-sky-200 flex flex-col overflow-hidden">
       <Header />
-      
-      {/* Thẻ <main> sẽ chiếm toàn bộ không gian còn lại */}
-      {/* <Outlet /> là nơi các trang (LoginPage, WeighingStation) sẽ được render */}
-      <main className="flex-grow">
+      <main className="flex-1 overflow-y-auto">
         <Outlet />
       </main>
     </div>

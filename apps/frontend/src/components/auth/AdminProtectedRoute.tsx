@@ -2,7 +2,7 @@
 
 import React, { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '../../context/useAuth';
+import { useAuth } from '../../hooks/useAuth';
 
 function AdminProtectedRoute({ children }: { children: ReactNode }) {
   const { user } = useAuth();

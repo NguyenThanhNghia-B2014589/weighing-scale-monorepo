@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useNotification } from '../ui/Notification/useNotification';
+import { useNotification } from '../../hooks/useNotification';
 import Notification from '../ui/Notification/Notification';
-import { useAuth } from '../../context/useAuth';
+import { useAuth } from '../../hooks/useAuth';
 import { mockUsers } from '../../data/users';
 import Spinner from '../ui/Spinner/Spinner'; // Đảm bảo bạn đã có component này
 
@@ -30,12 +30,12 @@ function LoginPage() {
       if (foundUser) {
         showNotification(`Chào mừng ${foundUser.userName}!`, 'success');
         login(foundUser);
-        setTimeout(() => navigate('/WeighingStation'), 1500);
+        setTimeout(() => navigate('/WeighingStationNew'), 1500);
       } else {
         showNotification('UserID hoặc mật khẩu không đúng!', 'error');
       }
       setIsLoading(false); // 3. Tắt loading
-    }, 1000);
+    }, 1500);
   };
 
   return (

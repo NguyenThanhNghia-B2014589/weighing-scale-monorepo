@@ -8,11 +8,20 @@ input[type=number]::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
+/* Ẩn thanh cuộn cho các trình duyệt Chrome, Safari, Edge và Opera */
+body::-webkit-scrollbar {
+  display: none;
+}
 
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
 /* Tự nhiên thấy phóng to lên nó đẹp hơn */
-/* Chỉ phóng to trên màn hình lớn */
+/* Chỉ phóng to trên màn hình lớn font-size: 150%; font-size: 125%; 
+                                       */
 @screen lg { 
   html {
-    font-size: 175%;
+    
   }
-}
+} 
+  

@@ -2,7 +2,7 @@
 
 import React, { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '../../context/useAuth';
+import { useAuth } from '../../hooks/useAuth';
 
 // Component này nhận một prop là "children", chính là trang mà nó đang bảo vệ
 function ProtectedRoute({ children }: { children: ReactNode }) {

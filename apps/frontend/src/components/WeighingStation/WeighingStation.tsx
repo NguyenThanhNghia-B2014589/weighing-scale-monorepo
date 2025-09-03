@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useWeighingStation } from './useWeighingStation';
+import { useWeighingStation } from '../../hooks/useWeighingStation';
 import Notification from '../ui/Notification/Notification';
 import Spinner from '../ui/Spinner/Spinner';
 import DashboardSkeleton from './DashboardSkeleton';
@@ -20,6 +20,9 @@ function WeighingStation() {
     maxWeight,
     isWeightValid,
     isLoading,
+    isSubmit,
+    mixingTime,
+    currentUser,
     handleCodeChange,
     handleCurrentWeightChange,
     handleScan,
@@ -53,9 +56,17 @@ function WeighingStation() {
     : 'text-yellow-400';
 
   // Chuẩn bị dữ liệu cho bảng
-  const tableHeaders = ["Tên Phôi Keo", "Số Lô", "Số Máy", "Khối Lượng Mẻ (kg)", "Người Thao Tác", "Thời Gian Trộn"];
+  const tableHeaders = ["Tên Phôi Keo", "Số Lô", "Số Máy", "Khối Lượng Mẻ (g)", "Người Thao Tác", "Thời Gian Cân"];
   const tableValues = tableData
-    ? [tableData.name, tableData.solo, tableData.somay, tableData.weight.toFixed(1), tableData.user, tableData.time]
+    ? [
+        tableData.name,
+        tableData.solo,
+        tableData.somay,
+        tableData.weight.toFixed(1),
+        currentUser?.userName || '',
+        // Sử dụng mixingTime nếu nó tồn tại, nếu không, hiển thị '---'
+        mixingTime || '---' 
+      ]
     : Array(tableHeaders.length).fill('');
 
   // --- PHẦN GIAO DIỆN (JSX) ---
@@ -87,7 +98,7 @@ function WeighingStation() {
                   step="0.1"
                   onChange={handleCurrentWeightChange}
                 />
-                <span className="text-2xl ml-2 text-gray-700">Kg</span>
+                <span className="text-3xl ml-2 text-gray-700">g</span>
               </span>    
             </h1>
 
@@ -120,9 +131,9 @@ function WeighingStation() {
             <button 
               className="bg-[#00446e] text-white font-bold w-full md:w-auto px-8 py-3 rounded-lg shadow-md hover:bg-[#003a60] transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
               onClick={handleSubmit}
-              disabled={!isWeightValid || !tableData || isLoading}
+              disabled={!isWeightValid || !tableData || isSubmit}
             >
-              Hoàn tất
+              {isSubmit ? 'Đang lưu...' : 'Hoàn tất'}
             </button>
           </div>
         </div>

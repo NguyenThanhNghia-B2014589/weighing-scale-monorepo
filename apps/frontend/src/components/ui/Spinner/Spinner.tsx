@@ -4,13 +4,14 @@ import React from 'react';
 
 // Prop `size` cho phép chúng ta tùy chỉnh kích thước spinner
 interface SpinnerProps {
-  size?: 'sm' | 'md'; // sm: cho nút bấm, md: cho tải trang
+  size?: 'sm' | 'md' | 'dm'; // sm: cho nút bấm, md: cho tải trang
 }
 
 function Spinner({ size = 'sm' }: SpinnerProps) {
   const sizeClasses = {
     sm: 'h-6 w-8',
     md: 'h-7 w-11',
+    dm: 'h-6 w-15',
   };
 
   return (

@@ -5,7 +5,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import logoIcon from '../../assets/logo.png';
 import adminIcon from '../../assets/admin.png';
 import logoutIcon from '../../assets/logout.png';
-import { useAuth } from '../../context/useAuth';
+import { useAuth } from '../../hooks/useAuth';
 
 function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -45,11 +45,11 @@ function Header() {
   return (
     <header className="fixed top-0 left-0 w-full h-[70px] bg-[#064469] z-50 flex items-center justify-between px-6 shadow-lg">
       <div className="flex items-center gap-4">
-        <Link to="/WeighingStation" className="flex items-center gap-4">
+        <Link to="/WeighingStationNew" className="flex items-center gap-4">
           <img src={logoIcon} alt="Logo" className="h-[35px]" />
         </Link>
         <h1 className="text-white sm:text-2xl text-xl font-bold tracking-wide">
-          LƯU TRÌNH CAO SU XƯỞNG ĐẾ
+          LƯU TRÌNH CÂN KEO XƯỞNG ĐẾ
         </h1>
       </div>
 
