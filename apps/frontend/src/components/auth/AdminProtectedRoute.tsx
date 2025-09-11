@@ -15,7 +15,7 @@ function AdminProtectedRoute({ children }: { children: ReactNode }) {
   // 2. Kiểm tra xem vai trò của người dùng có phải là 'admin' không.
   // Nếu không phải, chuyển họ về trang chủ (WeighingStation).
   if (user.role !== 'admin') {
-    return <Navigate to="/WeighingStation" replace />;
+    return <Navigate to="/WeighingStationNew" replace />;
   }
 
   // 3. Nếu tất cả các điều kiện đều thỏa mãn, cho phép hiển thị trang.

@@ -17,8 +17,8 @@ body::-webkit-scrollbar {
   display: none;
 }
 /* Tự nhiên thấy phóng to lên nó đẹp hơn */
-/* Chỉ phóng to trên màn hình lớn font-size: 150%; font-size: 125%; 
-                                       */
+/* Chỉ phóng to trên màn hình lớn font-size: 175%; 
+                                  font-size: 125%;      */
 @screen lg { 
   html {
     

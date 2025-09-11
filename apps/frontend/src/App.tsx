@@ -7,9 +7,11 @@ import Header from './components/ui/Header';
 import LoginPage from './components/LoginPage/LoginPage';
 import WeighingStation from './components/WeighingStation/WeighingStation';
 import WeighingStationNew from './components/WeighingStation/WeighingStationNew'; 
-import ProtectedRoute from './components/auth/ProtectedRoute'; // 1. Import ProtectedRoute
+import DashboardPage from './components/DashBoard/DashBoard';
 import AdminPage from './components/Admin/AdminPage';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 import AdminProtectedRoute from './components/auth/AdminProtectedRoute';
+import NotFoundPage from './components/404/NotFoundPage';
 
 
 function App() {
@@ -21,7 +23,12 @@ function App() {
       <main className="flex-grow pt-[70px]">
         <Routes>
           {/* Trang Login không cần bảo vệ */}
-          <Route path="/login" element={<LoginPage />} />
+          <Route 
+            path="/login" 
+            element={
+                <LoginPage />
+            } 
+          />
           
           {/* BỌC TUYẾN ĐƯỜNG WeighingStation BẰNG ProtectedRoute */}
           <Route 
@@ -51,8 +58,21 @@ function App() {
             }>  
           </Route>
 
-          {/* Tuyến đường mặc định vẫn giữ nguyên */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          {/* */}
+          <Route 
+            path="/dashboard" 
+            element={
+              <AdminProtectedRoute>
+                <DashboardPage />
+              </AdminProtectedRoute>
+            }>  
+          </Route>
+          
+          {/* Tuyến đường mặc định */}
+          <Route path="/" element={<Navigate to="/WeighingStationNew" replace />} />
+
+          {/* 2. TUYẾN ĐƯỜNG CATCH-ALL đặt ở cuối cùng */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
     </div>

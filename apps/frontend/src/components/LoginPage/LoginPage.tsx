@@ -1,43 +1,19 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useNotification } from '../../hooks/useNotification';
+import React from 'react';
 import Notification from '../ui/Notification/Notification';
-import { useAuth } from '../../hooks/useAuth';
-import { mockUsers } from '../../data/users';
 import Spinner from '../ui/Spinner/Spinner'; // Đảm bảo bạn đã có component này
+import { useLoginPage } from '../../hooks/useLoginPage';
 
 function LoginPage() {
-  // --- STATE ---
-  const [userID, setUserID] = useState('');
-  const [password, setPassword] = useState('');
-  const { showNotification, notificationMessage, notificationType } = useNotification();
-  const navigate = useNavigate();
-  const { login } = useAuth();
-  
-  // 1. Thêm state isLoading
-  const [isLoading, setIsLoading] = useState(false);
-
-  // --- HÀM XỬ LÝ ---
-  const handleLogin = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setIsLoading(true); // 2. Bật loading
-
-    setTimeout(() => {
-      const foundUser = mockUsers.find(
-        (user) => user.userID === userID && user.password === password
-      );
-
-      if (foundUser) {
-        showNotification(`Chào mừng ${foundUser.userName}!`, 'success');
-        login(foundUser);
-        setTimeout(() => navigate('/WeighingStationNew'), 1500);
-      } else {
-        showNotification('UserID hoặc mật khẩu không đúng!', 'error');
-      }
-      setIsLoading(false); // 3. Tắt loading
-    }, 1500);
-  };
-
+  const{
+    setUserID,
+    setPassword,
+    handleLogin,
+    userID,
+    password,
+    isLoading,
+    notificationMessage,
+    notificationType,
+  } = useLoginPage();
   return (
     <div className="min-h-auto flex items-center justify-center bg-sky-200 pt-[200px]">
       {/* Hiển thị thông báo nếu có */}

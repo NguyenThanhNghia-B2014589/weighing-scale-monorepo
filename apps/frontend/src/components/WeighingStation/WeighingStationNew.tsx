@@ -1,6 +1,5 @@
 // src/components/WeighingStation/WeighingStationModern.tsx
-
-import React, { useMemo, useEffect, useState} from "react";
+import React from "react";
 import { useWeighingStation } from "../../hooks/useWeighingStation";
 import Spinner from '../ui/Spinner/Spinner';
 import Notification from '../ui/Notification/Notification';
@@ -8,46 +7,30 @@ import WeighingStationSkeleton from "./WeighingStationSkeleton";
 
 // --- COMPONENT GIAO DIỆN MỚI ---
 function WeighingStationNew() {
-  // 2. SỬ DỤNG HOOK ĐỂ LẤY LOGIC VÀ STATE
+  // SỬ DỤNG HOOK ĐỂ LẤY LOGIC VÀ STATE
   const {
-    currentWeight,
     standardWeight,
     deviationPercent,
+    currentWeight,
+    deviationPct,
     scannedCode,
     tableData,
     minWeight,
     maxWeight,
     isWeightValid,
-    isLoading,
-    isSubmit,
-    tableValues,
-    tableHeaders,
     notificationMessage,
     notificationType,
-    handleCurrentWeightChange,
+    isLoading,
+    isSubmit,
+    isPageLoading,
+    isUiDisabled,
+    tableHeaders,
+    tableValues,
     handleCodeChange,
+    handleCurrentWeightChange,
     handleScan,
     handleSubmit,
   } = useWeighingStation();
-
-  const isUiDisabled = !!notificationMessage;
-  const [isPageLoading, setIsPageLoading] = useState(true);
-
-
-  // useEffect để tắt skeleton sau 1 giây
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsPageLoading(false);
-    }, 1000); // 1000ms = 1 giây
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  // --- CÁC GIÁ TRỊ PHÁI SINH (Sử dụng dữ liệu từ hook) ---
-  const deviationPct = useMemo(() => {
-    if (standardWeight === 0 || currentWeight === null) return 0;
-    return +(((currentWeight - standardWeight) / standardWeight) * 100).toFixed(1);
-  }, [currentWeight, standardWeight]);
 
   // HIỂN THỊ SKELETON NẾU isPageLoading LÀ TRUE
   if (isPageLoading) {
@@ -68,7 +51,7 @@ function WeighingStationNew() {
       )}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Title Row */}
-        
+        <h1 className="text-3xl font-bold mb-6 text-gray-800">Trạm Cân</h1>
 
         {/* --- KHU VỰC "WEIGHT + STATS" --- */}
         <section className="flex flex-col lg:flex-row gap-5 mb-6">

@@ -1,6 +1,6 @@
-// src/components/AdminPage/HistoryCard.tsx
+// src/components/ui/Card/HistoryCard.tsx
 
-import React from 'react';
+import React, { forwardRef } from 'react'; // 1. Import forwardRef
 import { WeighingData } from '../../../data/weighingData';
 
 // Component này nhận dữ liệu của một lần cân qua props
@@ -8,7 +8,8 @@ interface HistoryCardProps {
   data: WeighingData;
 }
 
-function HistoryCard({ data }: HistoryCardProps) {
+// Bọc component bằng forwardRef
+const HistoryCard = forwardRef<HTMLDivElement, HistoryCardProps>(({ data }, ref) => {
   const tableHeaders = ["Mã Code", "Tên Phôi Keo", "Số Lô", "Số Máy", "Khối Lượng Mẻ(g)", "Khối Lượng Cân(g)"];
   
   // Sắp xếp lại dữ liệu để khớp với tiêu đề
@@ -22,9 +23,8 @@ function HistoryCard({ data }: HistoryCardProps) {
   ];
 
   return (
-    // Thẻ bao bọc ngoài cùng với nền xanh
-    <div className="bg-[#90c5ab] rounded-lg p-4 shadow-md text-black font-semibold">
-      {/* Hàng thông tin trên cùng */}
+    // Gắn ref vào div cha
+    <div ref={ref} className="bg-[#90c5ab] rounded-lg p-4 shadow-md text-black font-semibold h-full">
       <div className="flex justify-start items-center gap-x-12 mb-4 text-sm">
         <span>Số thẻ: <span className="font-bold">{data.userID}</span></span>
         <span>Người thao tác: <span className="font-bold">{data.user}</span></span>
@@ -50,6 +50,6 @@ function HistoryCard({ data }: HistoryCardProps) {
       </div>
     </div>
   );
-}
+});
 
 export default HistoryCard;

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNotification } from './useNotification';
 import { mockApiData, WeighingData } from '../data/weighingData';
 import { useAuth } from './useAuth';
@@ -16,9 +16,25 @@ export function useWeighingStation() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmit, setIsSubmit] = useState(false);
   const { user } = useAuth();
+  const isUiDisabled = !!notificationMessage;
+  const [isPageLoading, setIsPageLoading] = useState(true);
 
+  // useEffect để tắt skeleton sau 1 giây
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsPageLoading(false);
+    }, 1000); // 1000ms = 1 giây
 
-    // Chuẩn bị dữ liệu cho bảng
+    return () => clearTimeout(timer);
+  }, []);
+
+  // --- CÁC GIÁ TRỊ PHÁI SINH (Sử dụng dữ liệu từ hook) ---
+  const deviationPct = useMemo(() => {
+    if (standardWeight === 0 || currentWeight === null) return 0;
+    return +(((currentWeight - standardWeight) / standardWeight) * 100).toFixed(1);
+  }, [currentWeight, standardWeight]);
+
+  // Chuẩn bị dữ liệu cho bảng
   const tableHeaders = ["Tên Phôi Keo", "Số Lô", "Số Máy", "Khối Lượng Mẻ (g)", "Người Thao Tác", "Thời Gian Cân"];
   const tableValues = tableData
     ? [
@@ -116,6 +132,7 @@ export function useWeighingStation() {
     standardWeight,
     deviationPercent,
     currentWeight,
+    deviationPct,
     scannedCode,
     tableData,
     minWeight,
@@ -125,6 +142,8 @@ export function useWeighingStation() {
     notificationType,
     isLoading,
     isSubmit,
+    isPageLoading,
+    isUiDisabled,
     mixingTime,
     currentUser: user,
     tableHeaders,
