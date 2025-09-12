@@ -16,7 +16,7 @@ type WeighingData = {
 export function useWeighingStation() {
   // --- STATE ---
   const [standardWeight, setStandardWeight] = useState(0.0);
-  const [deviationPercent, setDeviationPercent] = useState(3);
+  const [deviationPercent, ] = useState(3);
   const [currentWeight, setCurrentWeight] = useState<number | null>(null);
   const [scannedCode, setScannedCode] = useState('');
   const [tableData, setTableData] = useState<WeighingData | null>(null);

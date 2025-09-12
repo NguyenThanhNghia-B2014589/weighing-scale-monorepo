@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import  {useAuth} from './useAuth';
 import { useNotification } from './useNotification';
-import { mockUsers } from '../data/users';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import apiClient from '../api/apiClient';
 
 
 export function useLoginPage(){
@@ -17,24 +18,43 @@ export function useLoginPage(){
   const [isLoading, setIsLoading] = useState(false);
 
   // --- HÀM XỬ LÝ ---
-  const handleLogin = (event: React.FormEvent<HTMLFormElement>) => {
+  // HÀM NÀY THÀNH ASYNC VÀ GỌI API
+  const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setIsLoading(true); // 2. Bật loading
+    setIsLoading(true);
 
-    setTimeout(() => {
-      const foundUser = mockUsers.find(
-        (user) => user.userID === userID && user.password === password
-      );
+    try {
+      // Gửi yêu cầu POST đến backend
+      const response = await apiClient.post('/auth/login', {
+        userID: userID,
+        password: password,
+      });
+      
+      // Nếu thành công (status code 2xx), response.data sẽ chứa token và user
+      const { token, user } = response.data;
+      
+      // Gọi hàm login từ AuthContext để lưu thông tin
+      login(user, token); // Chúng ta sẽ cập nhật hàm login ở bước sau
+      
+      showNotification(`Chào mừng ${user.userName}!`, 'success');
+      
+      setTimeout(() => {
+        navigate('/WeighingStationNew');
+      }, 1500);
 
-      if (foundUser) {
-        showNotification(`Chào mừng ${foundUser.userName}!`, 'success');
-        login(foundUser);
-        setTimeout(() => navigate('/WeighingStationNew'), 1500);
+    } catch (error) {
+      // Nếu backend trả về lỗi (status code 4xx, 5xx)
+      if (axios.isAxiosError(error) && error.response) {
+        // Hiển thị thông báo lỗi từ backend
+        showNotification(error.response.data.message || 'Đã có lỗi xảy ra', 'error');
       } else {
-        showNotification('UserID hoặc mật khẩu không đúng!', 'error');
+        // Lỗi mạng hoặc lỗi không xác định
+        showNotification('Không thể kết nối đến server.', 'error');
       }
-      setIsLoading(false); // 3. Tắt loading
-    }, 1500);
+    } finally {
+      // Luôn luôn dừng loading sau khi hoàn tất
+      setIsLoading(false);
+    }
   };
   return {
     setUserID,

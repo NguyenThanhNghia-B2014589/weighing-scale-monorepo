@@ -2,32 +2,31 @@
 
 import React, { createContext, useState, ReactNode } from 'react';
 
-// --- ĐỊNH NGHĨA TYPES (giữ nguyên) ---
+// --- ĐỊNH NGHĨA TYPES ---
 interface User {
   userID: string;
   userName: string;
   role: string;
 }
 
+// 1. CẬP NHẬT AuthContextType
 export interface AuthContextType {
   user: User | null;
-  login: (userData: User) => void;
+  // Hàm login bây giờ sẽ nhận thêm một tham số là token
+  login: (userData: User, token: string) => void; 
   logout: () => void;
 }
 
-// --- TẠO VÀ EXPORT CONTEXT (giữ nguyên) ---
+// --- TẠO VÀ EXPORT CONTEXT ---
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// --- PROVIDER COMPONENT (ĐÃ ĐƯỢC NÂNG CẤP) ---
+// --- PROVIDER COMPONENT ---
 export function AuthProvider({ children }: { children: ReactNode }) {
   
-  // 1. KHỞI TẠO STATE TỪ LOCALSTORAGE
-  // useState sẽ chạy hàm này một lần duy nhất khi component khởi tạo
+  // Khởi tạo state từ localStorage (giữ nguyên)
   const [user, setUser] = useState<User | null>(() => {
     try {
-      // Lấy dữ liệu người dùng đã lưu từ localStorage
       const storedUser = localStorage.getItem('user');
-      // Nếu có, chuyển chuỗi JSON trở lại thành object. Nếu không, trả về null.
       return storedUser ? JSON.parse(storedUser) : null;
     } catch (error) {
       console.error("Lỗi khi đọc dữ liệu người dùng từ localStorage", error);
@@ -35,19 +34,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   });
 
-  // 2. CẬP NHẬT HÀM LOGIN ĐỂ LƯU VÀO LOCALSTORAGE
-  const login = (userData: User) => {
-    // Chuyển object người dùng thành một chuỗi JSON để lưu trữ
+  // 2. CẬP NHẬT HÀM LOGIN
+  const login = (userData: User, token: string) => {
+    // Lưu cả token và thông tin người dùng vào localStorage
+    localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(userData));
     // Cập nhật state trong React
     setUser(userData);
   };
 
-  // 3. CẬP NHẬT HÀM LOGOUT ĐỂ XÓA KHỎI LOCALSTORAGE
+  // 3. CẬP NHẬT HÀM LOGOUT
   const logout = () => {
-    // Xóa mục 'user' khỏi localStorage
+    // Xóa cả token và user
+    localStorage.removeItem('token');
     localStorage.removeItem('user');
-    // Cập nhật state trong React về null
+    // Cập nhật state trong React
     setUser(null);
   };
 
