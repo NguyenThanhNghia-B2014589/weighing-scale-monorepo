@@ -10,13 +10,11 @@ lerna-debug.log*
 node_modules
 .pnp
 .pnp.js
-
 dist
 .next
 build
-
 .turbo
-
+.env
 dist-ssr
 *.local
 
