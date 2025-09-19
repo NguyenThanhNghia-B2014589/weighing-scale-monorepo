@@ -68,7 +68,7 @@ function DashboardPage() {
                 label={(props: { name?: string; percent?: number }) => {
                   const name = props.name ?? '';
                   const percent = props.percent ?? 0;
-                  return `${name} ${(percent * 100).toFixed(0)}%`;
+                  return `${name} ${(percent * 100).toFixed(1)}%`;
                 }}
                 outerRadius={100}
                 fill="#8884d8"

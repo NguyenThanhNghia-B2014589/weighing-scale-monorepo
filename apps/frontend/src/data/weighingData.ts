@@ -291,7 +291,7 @@ export type WeighingDataRandom = {
 
 export const mockApiRandomData: Record<string, WeighingDataRandom> = {};
 
-const numberOfRecords = 100;
+const numberOfRecords = 111;
 
 for (let i = 1; i <= numberOfRecords; i++) {
   // Tạo ngẫu nhiên các giá trị từ các mảng đã định nghĩa ở trên
