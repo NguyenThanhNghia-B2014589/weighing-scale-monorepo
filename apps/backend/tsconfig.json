@@ -22,8 +22,13 @@
     "lib": ["es2022"],
 
     /* Completeness */
-    "skipLibCheck": true
+    "skipLibCheck": true,
+
+    "typeRoots": ["./node_modules/@types", "./types"],
   },
-  "include": ["src/**/*"], // Chỉ biên dịch các file trong thư mục src
+  "include": [
+    "src/**/*",
+    "types/**/*"
+  ], // Chỉ biên dịch các file trong thư mục src
   "exclude": ["node_modules"]
 }
