@@ -1,10 +1,11 @@
 // src/hooks/useAdminPage.ts
 
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
-import { mockApiRandomData } from "../data/weighingData";
 import { CellMeasurerCache } from 'react-virtualized';
 import { Variants } from 'framer-motion';
 import { useAutoRefresh } from "./useAutoRefresh";
+import apiClient from "../api/apiClient";
+import { HistoryRecord } from "../data/weighingHistoryData";
 
 export function useAdminPageLogic() {
   // --- STATE ---
@@ -15,7 +16,7 @@ export function useAdminPageLogic() {
   const [selectedDate, setSelectedDate] = useState('');
   
   // Quản lý dữ liệu lịch sử bằng useState để có thể làm mới
-const [weighingHistory, setWeighingHistory] = useState(() => Object.values(mockApiRandomData));
+  const [weighingHistory, setWeighingHistory] = useState<HistoryRecord[]>([]);
 
   // Di chuyển cache vào useRef để tránh tạo lại không cần thiết
   const cache = useRef(
@@ -25,23 +26,38 @@ const [weighingHistory, setWeighingHistory] = useState(() => Object.values(mockA
     })
   );
 
+    // --- LOGIC LẤY DỮ LIỆU TỪ API ---
+  const fetchData = useCallback(async () => {
+    try {
+      // Gọi đến GET /api/history. apiClient sẽ tự động thêm token
+      const response = await apiClient.get<HistoryRecord[]>('/history');
+      // Sắp xếp dữ liệu trả về từ server (nếu cần)
+      const sortedData = response.data.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+      setWeighingHistory(sortedData);
+    } catch (error) {
+      console.error("Lỗi khi lấy lịch sử cân:", error);
+      // Có thể hiển thị thông báo lỗi ở đây
+    } finally {
+      setIsPageLoading(false); // Dừng màn hình skeleton sau lần tải đầu tiên
+    }
+  }, []); // useCallback với mảng rỗng để hàm này không bị tạo lại
+
+  // useEffect để lấy dữ liệu lần đầu tiên khi component được tải
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
   // --- LOGIC LÀM MỚI DỮ LIỆU ---
-  // Định nghĩa hành động làm mới
-  const dataRefreshCallback = useCallback(() => {
-    setWeighingHistory(Object.values(mockApiRandomData));
-  }, []);
 
   // Sử dụng hook useAutoRefresh, chỉ kích hoạt thủ công
   const { 
     isAutoRefresh,
     setIsAutoRefresh,
-    refreshData, 
     lastRefresh, 
-    formatLastRefresh 
-  } = useAutoRefresh(
-    dataRefreshCallback,
-    { }
-  );
+    formatLastRefresh,
+    refreshData,
+  } = useAutoRefresh(fetchData, {});
+
   // --- CÁC LOGIC KHÁC ---
   // Debounce search term
   useEffect(() => {
@@ -63,7 +79,7 @@ const [weighingHistory, setWeighingHistory] = useState(() => Object.values(mockA
     return weighingHistory.filter((item) => {
       const nameMatch = selectedName === 'all' || item.name === selectedName;
       const dateMatch = !selectedDate || item.time.includes(selectedDate.split('-').reverse().join('/'));
-      const searchMatch = !debouncedTerm || [item.code, item.solo, item.somay, item.user].some((field) => field.toLowerCase().includes(debouncedTerm.toLowerCase()));
+      const searchMatch = !debouncedTerm || [item.code, item.solo, item.somay, item.user_name].some((field) => field.toLowerCase().includes(debouncedTerm.toLowerCase()));
       return nameMatch && dateMatch && searchMatch;
     });
   }, [debouncedTerm, weighingHistory, selectedName, selectedDate]);
@@ -91,10 +107,10 @@ const [weighingHistory, setWeighingHistory] = useState(() => Object.values(mockA
     setSelectedName,
     selectedDate,
     setSelectedDate,
-    refreshData,
     formatLastRefresh,
     lastRefresh,
     isAutoRefresh,
     setIsAutoRefresh,
+    refreshData,
   };
 }

@@ -1,14 +1,13 @@
 import React from "react";
 import { List, AutoSizer, CellMeasurer } from "react-virtualized";
-import "react-virtualized/styles.css"; // Đảm bảo bạn đã import file CSS này
-import { motion} from 'framer-motion';
+import "react-virtualized/styles.css";
+import { motion } from 'framer-motion';
 
 import HistoryCard from "../ui/Card/HistoryCard";
 import AdminPageSkeleton from "./AdminPageSkeleton";
 import type { ListRowProps } from "react-virtualized";
-import { useAdminPageLogic } from "../../hooks/useAdminPage"; 
+import { useAdminPageLogic } from "../../hooks/useAdminPage";
 
-// Biến HistoryCard thành một component có thể được animate bởi Framer Motion
 const AnimatedHistoryCard = motion(HistoryCard);
 
 function AdminPage() {
@@ -21,6 +20,7 @@ function AdminPage() {
     uniqueNames,
     selectedName,
     selectedDate,
+    lastRefresh,
     refreshData,
     formatLastRefresh,
     setSearchTerm,
@@ -108,16 +108,19 @@ function AdminPage() {
                 </svg>
               </div>
             </div>
-            <span className="text-xs text-gray-500">
-              Cập nhật lần cuối: {formatLastRefresh()}
-            </span>
-            <button
-              onClick={refreshData}
-              className="p-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors flex-shrink-0"
-              title={`Làm mới dữ liệu (lần cuối: ${formatLastRefresh()})`}
-            >
-              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-            </button>
+            <div className="flex items-center gap-3 mt-4 sm:mt-0">
+              {/* Thông tin refresh cuối */}
+              <span className="text-xs text-gray-500">
+                Cập nhật lần cuối: {formatLastRefresh(lastRefresh)}
+              </span>
+              <button
+                onClick={refreshData}
+                className="p-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors flex-shrink-0"
+                title={`Làm mới dữ liệu (lần cuối: ${formatLastRefresh()})`}
+              >
+                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -131,10 +134,10 @@ function AdminPage() {
                 width={width}
                 height={height}
                 rowCount={filteredHistory.length}
-                rowHeight={cache.rowHeight} // Lấy chiều cao động từ cache
+                rowHeight={cache.rowHeight}
                 rowRenderer={rowRenderer}
                 className="no-scrollbar"
-                data={filteredHistory} // Giúp List biết khi nào cần re-render
+                data={filteredHistory}
               />
             )}
           </AutoSizer>

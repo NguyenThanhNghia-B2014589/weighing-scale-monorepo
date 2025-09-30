@@ -5,7 +5,8 @@
   "main": "src/index.ts",
   "scripts": {
     "dev": "nodemon --exec node --loader ts-node/esm src/index.ts",
-    "db:seed": "tsx createUser.ts"
+    "db:seed:users": "tsx createUser.ts",
+    "db:seed:history": "tsx seedHistory.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",

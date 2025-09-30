@@ -1,11 +1,11 @@
 // src/components/ui/Card/HistoryCard.tsx
 
 import React, { forwardRef } from 'react'; // 1. Import forwardRef
-import { WeighingData } from '../../../data/weighingData';
+import { HistoryRecord } from '../../../data/weighingHistoryData';
 
 // Component này nhận dữ liệu của một lần cân qua props
 interface HistoryCardProps {
-  data: WeighingData;
+  data: HistoryRecord;
 }
 
 // Bọc component bằng forwardRef
@@ -18,16 +18,16 @@ const HistoryCard = forwardRef<HTMLDivElement, HistoryCardProps>(({ data }, ref)
     data.name,
     data.solo,
     data.somay,
-    data.weight.toFixed(1),
-    data.finalWeight.toFixed(1)
+    data.weight,
+    data.final_weight
   ];
 
   return (
     // Gắn ref vào div cha
     <div ref={ref} className="bg-[#90c5ab] rounded-lg p-4 shadow-md text-black font-semibold h-full">
       <div className="flex justify-start items-center gap-x-12 mb-4 text-sm">
-        <span>Số thẻ: <span className="font-bold">{data.userID}</span></span>
-        <span>Người thao tác: <span className="font-bold">{data.user}</span></span>
+        <span>Số thẻ: <span className="font-bold">{data.user_id}</span></span>
+        <span>Người thao tác: <span className="font-bold">{data.user_name}</span></span>
         <span>Thời gian cân: <span className="font-bold">{data.time}</span></span>
       </div>
 
