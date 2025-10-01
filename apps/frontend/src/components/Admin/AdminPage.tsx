@@ -8,7 +8,8 @@ import AdminPageSkeleton from "./AdminPageSkeleton";
 import type { ListRowProps } from "react-virtualized";
 import { useAdminPageLogic } from "../../hooks/useAdminPage";
 
-const AnimatedHistoryCard = motion(HistoryCard);
+// Sử dụng motion.div thay vì motion(HistoryCard)
+const MotionDiv = motion.div;
 
 function AdminPage() {
   const {
@@ -35,16 +36,18 @@ function AdminPage() {
     const item = filteredHistory[index];
     return (
       <CellMeasurer cache={cache} columnIndex={0} key={key} parent={parent} rowIndex={index}>
-        {({ registerChild }) => (
-          <div ref={registerChild} style={style} className="p-2">
-            <AnimatedHistoryCard
-              data={item}
-              variants={cardVariants} // 2. SỬ DỤNG variants TỪ HOOK
+        {({ registerChild, measure }) => (
+          <div ref={registerChild as React.RefCallback<HTMLDivElement>} style={style} className="p-2">
+            <MotionDiv
+              variants={cardVariants}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, amount: 0.3 }}
               layout
-            />
+              onLoad={measure}
+            >
+              <HistoryCard data={item} />
+            </MotionDiv>
           </div>
         )}
       </CellMeasurer>

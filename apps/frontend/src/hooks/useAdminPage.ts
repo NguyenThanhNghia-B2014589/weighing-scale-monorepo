@@ -74,15 +74,28 @@ export function useAdminPageLogic() {
   // Lấy danh sách tên duy nhất cho dropdown
   const uniqueNames = useMemo(() => [...new Set(weighingHistory.map(item => item.name))], [weighingHistory]);
 
+  // Hàm kiểm tra ngày có khớp với ngày đã chọn không
+  const isDateMatch = useCallback((timestamp: string, selectedDate: string): boolean => {
+    if (!selectedDate) return true;
+    
+    // timestamp format: "2025-08-25 08:20:00"
+    // selectedDate format: "2025-08-25"
+    
+    // Lấy phần ngày từ timestamp (10 ký tự đầu)
+    const dateFromTimestamp = timestamp.substring(0, 10);
+    
+    return dateFromTimestamp === selectedDate;
+  }, []);
+
   // Lọc dữ liệu để hiển thị
   const filteredHistory = useMemo(() => {
     return weighingHistory.filter((item) => {
       const nameMatch = selectedName === 'all' || item.name === selectedName;
-      const dateMatch = !selectedDate || item.time.includes(selectedDate.split('-').reverse().join('/'));
+      const dateMatch = isDateMatch(item.time, selectedDate);
       const searchMatch = !debouncedTerm || [item.code, item.solo, item.somay, item.user_name].some((field) => field.toLowerCase().includes(debouncedTerm.toLowerCase()));
       return nameMatch && dateMatch && searchMatch;
     });
-  }, [debouncedTerm, weighingHistory, selectedName, selectedDate]);
+  }, [debouncedTerm, weighingHistory, selectedName, selectedDate, isDateMatch]);
 
   // Logic animation
   const cardVariants: Variants = {
