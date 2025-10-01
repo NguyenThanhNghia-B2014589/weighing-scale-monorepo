@@ -1,3 +1,4 @@
+// src/data/weighingHistoryData.ts
 export type HistoryRecord = {
   id: number;
   user_id: string; // Đổi thành snake_case

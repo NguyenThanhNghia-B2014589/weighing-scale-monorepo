@@ -1,3 +1,4 @@
+// src/hooks/useWeighingStation.ts
 import { useState, useMemo, useEffect } from 'react';
 import { useNotification } from './useNotification';
 import { mockApiData, WeighingData } from '../data/weighingData';

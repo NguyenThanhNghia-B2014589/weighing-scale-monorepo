@@ -1,3 +1,4 @@
+// src/context/SettingContext.tsx
 import React, {  useState, ReactNode } from 'react';
 import {SettingsContext} from '../hooks/useSettings';
 

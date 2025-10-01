@@ -1,3 +1,4 @@
+// src/components/ui/NavLink/NavLink.tsx
 import { motion } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
 import React from 'react';

@@ -1,3 +1,4 @@
+// src/hooks/useSettings.ts
 import { useContext, createContext, } from 'react';
 
 interface SettingsContextType {
