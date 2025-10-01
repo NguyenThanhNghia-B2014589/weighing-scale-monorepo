@@ -1,3 +1,4 @@
+// apps/backend/src/api/controllers/authController.ts
 import { Request, Response } from 'express';
 import pool from '../../config/db.js';
 import bcrypt from 'bcryptjs';
@@ -25,7 +26,7 @@ export const loginUser = async (req: Request, res: Response) => {
         throw new Error('JWT_SECRET is not defined in .env file');
     }
 
-    const token = jwt.sign({ id: user.id, role: user.role }, jwtSecret, { expiresIn: '1h' });
+    const token = jwt.sign({ id: user.id, role: user.role }, jwtSecret );
 
     res.json({
       token,
