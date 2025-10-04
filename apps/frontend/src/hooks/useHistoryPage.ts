@@ -14,6 +14,9 @@ export function useAdminPageLogic() {
   const [debouncedTerm, setDebouncedTerm] = useState("");
   const [selectedName, setSelectedName] = useState('all');
   const [selectedDate, setSelectedDate] = useState('');
+
+  // Tiêu đề bảng
+  const tableHeaders = ["Mã code","Tên Phôi Keo", "Số Lô", "Số Máy", "Người Thao Tác", "Thời Gian Cân","Khối Lượng Mẻ (g)","Khối lượng cân (g)"];
   
   // Quản lý dữ liệu lịch sử bằng useState để có thể làm mới
   const [weighingHistory, setWeighingHistory] = useState<HistoryRecord[]>([]);
@@ -22,7 +25,7 @@ export function useAdminPageLogic() {
   const cache = useRef(
     new CellMeasurerCache({
       fixedWidth: true,
-      defaultHeight: 250 // Chiều cao mặc định ban đầu
+      defaultHeight: 40 // Chiều cao mặc định ban đầu
     })
   );
 
@@ -109,6 +112,7 @@ export function useAdminPageLogic() {
 
   // --- TRẢ VỀ CÁC GIÁ TRỊ VÀ HÀM ---
   return {
+    tableHeaders,
     searchTerm,
     setSearchTerm,
     isPageLoading,

@@ -53,7 +53,7 @@ function Header() {
                     <img src={controlPanelIcon} alt="Dashboard" className="h-6 w-6 brightness-0 invert" />
                   </span>
                 </NavLink>
-                <NavLink to="/admin" title="Lịch sử cân">
+                <NavLink to="/history" title="Lịch sử cân">
                   <span className="relative z-10">
                     <img src={gridPenIcon} alt="Lịch sử cân" className="h-6 w-6 brightness-0 invert" />
                   </span>

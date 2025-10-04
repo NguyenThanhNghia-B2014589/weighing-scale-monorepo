@@ -4,16 +4,7 @@ import React from 'react';
 
 // Component con cho một thẻ lịch sử skeleton
 const SkeletonHistoryCard = () => (
-  <div className="bg-gray-200 rounded-lg p-4 shadow-md">
-    {/* Hàng thông tin trên cùng */}
-    <div className="flex justify-between items-center mb-4">
-      <div className="h-4 bg-gray-300 rounded w-1/4"></div>
-      <div className="h-4 bg-gray-300 rounded w-1/4"></div>
-      <div className="h-4 bg-gray-300 rounded w-1/4"></div>
-    </div>
-    {/* Bảng skeleton */}
-    <div className="bg-gray-300 rounded-md p-2 h-24"></div>
-  </div>
+  <div className="bg-gray-200 h-[40px] rounded-lg p-4 shadow-md" />
 );
 
 
@@ -30,6 +21,21 @@ function AdminPageSkeleton() {
       
       {/* Danh sách các thẻ skeleton */}
       <div className="flex flex-col gap-6">
+        <SkeletonHistoryCard />
+        <SkeletonHistoryCard />
+        <SkeletonHistoryCard />
+        <SkeletonHistoryCard />
+        <SkeletonHistoryCard />
+        <SkeletonHistoryCard />
+        <SkeletonHistoryCard />
+        <SkeletonHistoryCard />
+        <SkeletonHistoryCard />
+        <SkeletonHistoryCard />
+        <SkeletonHistoryCard />
+        <SkeletonHistoryCard />
+        <SkeletonHistoryCard />
+        <SkeletonHistoryCard />
+        <SkeletonHistoryCard />
         <SkeletonHistoryCard />
         <SkeletonHistoryCard />
         <SkeletonHistoryCard />

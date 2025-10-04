@@ -44,7 +44,7 @@ function formatTimestamp(timestamp: string): string {
 
 // Component không cần forwardRef nữa
 const HistoryCard: React.FC<HistoryCardProps> = ({ data }) => {
-  const tableHeaders = ["Mã Code", "Tên Phôi Keo", "Số Lô", "Số Máy", "Khối Lượng Mẻ(g)", "Khối Lượng Cân(g)"];
+  //const tableHeaders = ["Mã Code", "Tên Phôi Keo", "Số Lô", "Số Máy", "Khối Lượng Mẻ(g)", "Khối Lượng Cân(g)"];
   
   // Sắp xếp lại dữ liệu để khớp với tiêu đề
   const tableValues = [
@@ -52,27 +52,29 @@ const HistoryCard: React.FC<HistoryCardProps> = ({ data }) => {
     data.name,
     data.solo,
     data.somay,
+    data.user_name,
+    data.time = formatTimestamp(data.time),
     data.weight,
     data.final_weight
   ];
 
   return (
-    <div className="bg-[#90c5ab] rounded-lg p-4 shadow-md text-black font-semibold h-full">
-      <div className="flex justify-start items-center gap-x-12 mb-4 text-sm">
+    <div > {/*className="bg-[#90c5ab] rounded-lg p-4 shadow-md text-black font-semibold h-full"*/}
+      {/*<div className="flex justify-start items-center gap-x-12 mb-4 text-sm">
         <span>Số thẻ: <span className="font-bold">{data.user_id}</span></span>
         <span>Người thao tác: <span className="font-bold">{data.user_name}</span></span>
-        <span>Thời gian cân: <span className="font-bold">{formatTimestamp(data.time)}</span></span>
-      </div>
+        <span>Thời gian cân: <span className="font-bold">{formatTimestamp(data.time)}</span></span>/
+      </div>*/}
 
       {/* Bảng thông tin chi tiết */}
       <div className="rounded-md overflow-hidden">
-        <div className="grid grid-cols-6">
-          {/* Tiêu đề bảng */}
+        <div className="grid grid-cols-8">
+          {/* Tiêu đề bảng 
           {tableHeaders.map((header) => (
             <div key={header} className="bg-sky-300 text-black text-center p-2 font-bold border-r border-sky-400 last:border-r-0">
               {header}
             </div>
-          ))}
+          ))}*/}
           {/* Dữ liệu bảng */}
           {tableValues.map((value, index) => (
             <div key={index} className="bg-white text-gray-800 text-center p-3 border-r border-gray-200 last:border-r-0">

@@ -5,20 +5,21 @@ import "react-virtualized/styles.css";
 import { motion } from 'framer-motion';
 
 import HistoryCard from "../ui/Card/HistoryCard";
-import AdminPageSkeleton from "./AdminPageSkeleton";
+import AdminPageSkeleton from "./HistoryPageSkeleton";
 import type { ListRowProps } from "react-virtualized";
-import { useAdminPageLogic } from "../../hooks/useAdminPage";
+import { useAdminPageLogic } from "../../hooks/useHistoryPage";
 
 // Sử dụng motion.div thay vì motion(HistoryCard)
 const MotionDiv = motion.div;
 
-function AdminPage() {
+function HistoryPage() {
   const {
     searchTerm,
     cache,
     isPageLoading,
     filteredHistory,
     cardVariants,
+    tableHeaders,
     uniqueNames,
     selectedName,
     selectedDate,
@@ -60,7 +61,7 @@ function AdminPage() {
       {/* --- THANH ĐIỀU KHIỂN MỚI --- */}
       <div className="bg-sky-200 p-3 shadow border-b-2 border-blue-900/80">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 ">
-          <h1 className="text-xl lg:text-2xl font-bold text-blue-900 flex-shrink-0 px-5">
+          <h1 className="text-3xl lg:text-2xl font-bold text-gray-800 flex-shrink-0 px-5">
             Trang Quản Trị - Lịch Sử Cân
           </h1>
           
@@ -131,6 +132,10 @@ function AdminPage() {
 
       {/* List */}
       <div className="mt-4 flex-1 min-h-screen px-6">
+        
+        <div className="hidden md:grid grid-cols-8 pl-2 pr-2">
+            {tableHeaders.map((header) => ( <div key={header} className="bg-sky-300 text-black text-center p-2 font-bold border-r border-sky-400 last:border-r-0">{header}</div> ))}
+        </div>
         {filteredHistory.length > 0 ? (
           <AutoSizer>
             {({ height, width }) => (
@@ -155,4 +160,4 @@ function AdminPage() {
   );
 }
 
-export default AdminPage;
+export default HistoryPage;

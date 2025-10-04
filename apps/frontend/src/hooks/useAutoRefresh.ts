@@ -27,7 +27,7 @@ export function useAutoRefresh(
   options: UseAutoRefreshOptions = {}
 ): UseAutoRefreshReturn {
   const {
-    defaultInterval = 5, // 5 phút mặc định
+    defaultInterval = 300, // 5 phút mặc định
     autoStart = true
   } = options;
 

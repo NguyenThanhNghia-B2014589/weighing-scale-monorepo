@@ -9,12 +9,12 @@ import LoginPage from './components/LoginPage/LoginPage';
 import WeighingStation from './components/WeighingStation/WeighingStation';
 import WeighingStationNew from './components/WeighingStation/WeighingStationNew';
 import DashboardPage from './components/DashBoard/DashBoard';
-import AdminPage from './components/Admin/AdminPage';
+import HistoryPage from './components/Admin/HistoryPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import AdminProtectedRoute from './components/auth/AdminProtectedRoute';
 import NotFoundPage from './components/404/NotFoundPage';
 import SettingsModal from './components/ui/SettingsModal/SettingsModal'; // <-- path sửa
-import { useAdminPageLogic } from './hooks/useAdminPage';
+import { useAdminPageLogic } from './hooks/useHistoryPage';
 
 function App() {
   const {
@@ -61,10 +61,10 @@ function App() {
 
           {/* Admin page (bọc AdminProtectedRoute) */}
           <Route
-            path="/admin"
+            path="/history"
             element={
               <AdminProtectedRoute>
-                <AdminPage />
+                <HistoryPage />
               </AdminProtectedRoute>
             }
           />
