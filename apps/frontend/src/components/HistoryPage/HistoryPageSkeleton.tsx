@@ -1,5 +1,4 @@
-// src/components/AdminPage/AdminPageSkeleton.tsx
-
+// src/components/HistoryPage/HistoryPageSkeleton.tsx
 import React from 'react';
 
 // Component con cho một thẻ lịch sử skeleton

@@ -9,7 +9,7 @@ import LoginPage from './components/LoginPage/LoginPage';
 import WeighingStation from './components/WeighingStation/WeighingStation';
 import WeighingStationNew from './components/WeighingStation/WeighingStationNew';
 import DashboardPage from './components/DashBoard/DashBoard';
-import HistoryPage from './components/Admin/HistoryPage';
+import HistoryPage from './components/HistoryPage/HistoryPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import AdminProtectedRoute from './components/auth/AdminProtectedRoute';
 import NotFoundPage from './components/404/NotFoundPage';

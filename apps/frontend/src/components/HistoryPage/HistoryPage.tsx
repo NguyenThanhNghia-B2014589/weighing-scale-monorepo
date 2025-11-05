@@ -1,4 +1,4 @@
-// src/components/Admin/AdminPage.tsx
+// src/components/HistoryPage/HistoryPage.tsx
 import React from "react";
 import { List, AutoSizer, CellMeasurer } from "react-virtualized";
 import "react-virtualized/styles.css";
