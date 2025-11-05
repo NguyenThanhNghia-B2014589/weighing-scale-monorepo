@@ -1,11 +1,39 @@
-// src/hooks/useAdminPage.ts
+// src/hooks/useHistoryPage.ts
 
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { CellMeasurerCache } from 'react-virtualized';
 import { Variants } from 'framer-motion';
 import { useAutoRefresh } from "./useAutoRefresh";
 import apiClient from "../api/apiClient";
-import { HistoryRecord } from "../data/weighingHistoryData";
+
+// Định nghĩa kiểu dữ liệu từ backend
+interface GroupedHistoryData {
+  ovNO: string;
+  memo: string;
+  totalTargetQty: number;
+  totalNhap: number;
+  totalXuat: number;
+  y_TotalPackages: number;
+  x_WeighedNhap: number;
+  records: HistoryRecord[];
+}
+
+interface HistoryRecord {
+  maCode: string;
+  mixTime: string;
+  realQty: number;
+  loai: string;
+  ovNO: string;
+  package: string;
+  MUserID: string;
+  qtys: number;
+  tenPhoiKeo: string;
+  soMay: string;
+  totalTargetQty: number;
+  Memo: string;
+  nguoiThaoTac: string;
+  soLo: string;
+}
 
 export function useAdminPageLogic() {
   // --- STATE ---
@@ -16,43 +44,45 @@ export function useAdminPageLogic() {
   const [selectedDate, setSelectedDate] = useState('');
 
   // Tiêu đề bảng
-  const tableHeaders = ["Mã code","Tên Phôi Keo", "Số Lô", "Số Máy", "Người Thao Tác", "Thời Gian Cân","Khối Lượng Mẻ (g)","Khối lượng cân (g)"];
+  const tableHeaders = [
+    "OVNO", 
+    "Memo", 
+    "Tên Phôi Keo", 
+    "Tổng Mục Tiêu (kg)", 
+    "Tổng Nhập (kg)", 
+    "Tổng Xuất (kg)", 
+    "Tiến độ", 
+    "Số Mẻ"
+  ];
   
-  // Quản lý dữ liệu lịch sử bằng useState để có thể làm mới
-  const [weighingHistory, setWeighingHistory] = useState<HistoryRecord[]>([]);
+  // Quản lý dữ liệu lịch sử
+  const [groupedHistory, setGroupedHistory] = useState<GroupedHistoryData[]>([]);
 
-  // Di chuyển cache vào useRef để tránh tạo lại không cần thiết
+  // Cache cho react-virtualized
   const cache = useRef(
     new CellMeasurerCache({
       fixedWidth: true,
-      defaultHeight: 40 // Chiều cao mặc định ban đầu
+      defaultHeight: 80
     })
   );
 
-    // --- LOGIC LẤY DỮ LIỆU TỪ API ---
+  // --- LOGIC LẤY DỮ LIỆU TỪ API ---
   const fetchData = useCallback(async () => {
     try {
-      // Gọi đến GET /api/history. apiClient sẽ tự động thêm token
-      const response = await apiClient.get<HistoryRecord[]>('/history');
-      // Sắp xếp dữ liệu trả về từ server (nếu cần)
-      const sortedData = response.data.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
-      setWeighingHistory(sortedData);
+      const response = await apiClient.get<GroupedHistoryData[]>('/history');
+      setGroupedHistory(response.data);
     } catch (error) {
       console.error("Lỗi khi lấy lịch sử cân:", error);
-      // Có thể hiển thị thông báo lỗi ở đây
     } finally {
-      setIsPageLoading(false); // Dừng màn hình skeleton sau lần tải đầu tiên
+      setIsPageLoading(false);
     }
-  }, []); // useCallback với mảng rỗng để hàm này không bị tạo lại
+  }, []);
 
-  // useEffect để lấy dữ liệu lần đầu tiên khi component được tải
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
   // --- LOGIC LÀM MỚI DỮ LIỆU ---
-
-  // Sử dụng hook useAutoRefresh, chỉ kích hoạt thủ công
   const { 
     isAutoRefresh,
     setIsAutoRefresh,
@@ -68,39 +98,54 @@ export function useAdminPageLogic() {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // Fake loading ban đầu
-  useEffect(() => {
-    const timer = setTimeout(() => setIsPageLoading(false), 1000);
-    return () => clearTimeout(timer);
-  }, []);
+  // Lấy danh sách tên phôi keo duy nhất
+  const uniqueNames = useMemo(() => {
+    const names = new Set<string>();
+    groupedHistory.forEach(group => {
+      group.records.forEach(record => {
+        if (record.tenPhoiKeo) names.add(record.tenPhoiKeo);
+      });
+    });
+    return Array.from(names);
+  }, [groupedHistory]);
 
-  // Lấy danh sách tên duy nhất cho dropdown
-  const uniqueNames = useMemo(() => [...new Set(weighingHistory.map(item => item.name))], [weighingHistory]);
-
-  // Hàm kiểm tra ngày có khớp với ngày đã chọn không
+  // Hàm kiểm tra ngày
   const isDateMatch = useCallback((timestamp: string, selectedDate: string): boolean => {
     if (!selectedDate) return true;
     
-    // timestamp format: "2025-08-25 08:20:00"
-    // selectedDate format: "2025-08-25"
+    // timestamp format: "2025-11-05T10:30:00.000Z"
+    const date = new Date(timestamp);
+    const dateStr = date.toISOString().substring(0, 10);
     
-    // Lấy phần ngày từ timestamp (10 ký tự đầu)
-    const dateFromTimestamp = timestamp.substring(0, 10);
-    
-    return dateFromTimestamp === selectedDate;
+    return dateStr === selectedDate;
   }, []);
 
-  // Lọc dữ liệu để hiển thị
+  // Lọc dữ liệu
   const filteredHistory = useMemo(() => {
-    return weighingHistory.filter((item) => {
-      const nameMatch = selectedName === 'all' || item.name === selectedName;
-      const dateMatch = isDateMatch(item.time, selectedDate);
-      const searchMatch = !debouncedTerm || [item.code, item.solo, item.somay, item.user_name].some((field) => field.toLowerCase().includes(debouncedTerm.toLowerCase()));
+    return groupedHistory.filter((group) => {
+      // Lọc theo tên phôi keo
+      const nameMatch = selectedName === 'all' || 
+        group.records.some(r => r.tenPhoiKeo === selectedName);
+      
+      // Lọc theo ngày
+      const dateMatch = !selectedDate || 
+        group.records.some(r => isDateMatch(r.mixTime, selectedDate));
+      
+      // Lọc theo từ khóa tìm kiếm
+      const searchMatch = !debouncedTerm || 
+        group.ovNO.toLowerCase().includes(debouncedTerm.toLowerCase()) ||
+        group.memo?.toLowerCase().includes(debouncedTerm.toLowerCase()) ||
+        group.records.some(r => 
+          r.tenPhoiKeo?.toLowerCase().includes(debouncedTerm.toLowerCase()) ||
+          r.soMay?.toLowerCase().includes(debouncedTerm.toLowerCase()) ||
+          r.nguoiThaoTac?.toLowerCase().includes(debouncedTerm.toLowerCase())
+        );
+      
       return nameMatch && dateMatch && searchMatch;
     });
-  }, [debouncedTerm, weighingHistory, selectedName, selectedDate, isDateMatch]);
+  }, [debouncedTerm, groupedHistory, selectedName, selectedDate, isDateMatch]);
 
-  // Logic animation
+  // Animation variants
   const cardVariants: Variants = {
     hidden: { opacity: 0, y: 50 },
     visible: { 
@@ -110,7 +155,6 @@ export function useAdminPageLogic() {
     },
   };
 
-  // --- TRẢ VỀ CÁC GIÁ TRỊ VÀ HÀM ---
   return {
     tableHeaders,
     searchTerm,
