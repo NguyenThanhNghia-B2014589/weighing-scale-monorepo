@@ -1,11 +1,10 @@
-// apps/backend/src/api/routes/historyRoutes.ts
-import { Router } from 'express';
-import { getWeighingHistory } from '../controllers/historyController.js';
-import { authMiddleware } from '../../middleware/authMiddleware.js';
+// src/api/routes/historyRoutes.ts
+import express from 'express';
+import { getHistory } from '../controllers/historyController';
 
-const router = Router();
+const router = express.Router();
 
-// Áp dụng authMiddleware để bảo vệ route này
-router.get('/', authMiddleware, getWeighingHistory);
+// Định nghĩa API GET /api/history
+router.get('/history', getHistory);
 
 export default router;

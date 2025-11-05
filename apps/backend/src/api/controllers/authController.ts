@@ -1,44 +1,41 @@
-// apps/backend/src/api/controllers/authController.ts
 import { Request, Response } from 'express';
-import pool from '../../config/db.js';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import sql from 'mssql';
+import { getPool } from '../../config/db';
 
-export const loginUser = async (req: Request, res: Response) => {
-  const { userID, password } = req.body;
+export const login = async (req: Request, res: Response) => {
+  // 1. Lấy mUserID (Số thẻ) từ body
+  const { mUserID } = req.body;
+
+  if (!mUserID) {
+    return res.status(400).send({ message: 'Vui lòng nhập Số thẻ (mUserID).' });
+  }
 
   try {
-    const queryText = 'SELECT * FROM users WHERE user_id = $1';
-    const { rows } = await pool.query(queryText, [userID]);
+    const pool = getPool();
 
-    if (rows.length === 0) {
-      return res.status(400).json({ message: 'UserID hoặc mật khẩu không đúng' });
-    }
-    const user = rows[0];
+    // 2. Kiểm tra xem user có tồn tại trong bảng Persion không
+    const userResult = await pool.request()
+      .input('mUserIDParam', sql.VarChar(20), mUserID) // Dùng kiểu VarChar(20)
+      .query('SELECT UserName FROM Outsole_VML_Persion WHERE MUserID = @mUserIDParam');
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: 'UserID hoặc mật khẩu không đúng' });
-    }
-    
-    const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret) {
-        throw new Error('JWT_SECRET is not defined in .env file');
+    if (userResult.recordset.length === 0) {
+      // 3. Nếu không tìm thấy
+      return res.status(404).send({ message: 'Số thẻ không tồn tại hoặc không hợp lệ.' });
     }
 
-    const token = jwt.sign({ id: user.id, role: user.role }, jwtSecret );
-
-    res.json({
-      token,
-      user: {
-        userID: user.user_id,
-        userName: user.user_name,
-        role: user.role,
-      },
+    // 4. Nếu tìm thấy, đăng nhập thành công
+    const user = userResult.recordset[0];
+    res.status(200).json({
+      message: `Đăng nhập thành công! Chào ${user.UserName}`,
+      userData: user,
     });
 
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Lỗi server' });
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      console.error(`Lỗi khi đăng nhập ${mUserID}:`, err.message);
+    } else {
+      console.error(`Lỗi không xác định khi đăng nhập ${mUserID}:`, err);
+    }
+    res.status(500).send({ message: 'Lỗi máy chủ nội bộ khi đăng nhập' });
   }
 };

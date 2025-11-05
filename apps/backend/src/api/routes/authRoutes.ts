@@ -1,9 +1,9 @@
-// apps/backend/src/api/routes/authRoutes.ts
-import { Router } from 'express';
-import { loginUser } from '../controllers/authController.js';
+import express from 'express';
+import { login } from '../controllers/authController';
 
-const router = Router();
+const router = express.Router();
 
-router.post('/login', loginUser);
+// Định nghĩa API POST /api/auth/login
+router.post('/login', login);
 
 export default router;

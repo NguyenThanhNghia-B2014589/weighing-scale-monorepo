@@ -1,34 +1,12 @@
 {
   "compilerOptions": {
-    /* Type Checking */
-    "strict": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    
-    /* Modules */
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "baseUrl": ".",
-    
-    /* Emit */
-    "outDir": "dist",
-    
-    /* Interop Constraints */
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    
-    /* Language and Environment */
-    "target": "ES2022",
-    "lib": ["es2022"],
-
-    /* Completeness */
-    "skipLibCheck": true,
-
-    "typeRoots": ["./node_modules/@types", "./types"],
+    "target": "ES2020",         // Biên dịch sang cú pháp JS hiện đại
+    "module": "CommonJS",      // Dùng module kiểu Node.js
+    "outDir": "./dist",        // Thư mục chứa code JS sau khi biên dịch
+    "rootDir": "./src",        // Thư mục chứa code TS gốc
+    "strict": true,            // Bật chế độ nghiêm ngặt (rất tốt)
+    "esModuleInterop": true,   // Cho phép 'import' các package 'require'
+    "skipLibCheck": true       // Bỏ qua kiểm tra file .d.ts
   },
-  "include": [
-    "src/**/*",
-    "types/**/*"
-  ], // Chỉ biên dịch các file trong thư mục src
-  "exclude": ["node_modules"]
+  "include": ["src/**/*"] // Chỉ biên dịch các file trong thư mục 'src'
 }
