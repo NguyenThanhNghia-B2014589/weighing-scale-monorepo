@@ -1,60 +1,91 @@
 // src/components/HistoryPage/HistoryPage.tsx
-import React from "react";
+import React, { useMemo } from "react";
 import { List, AutoSizer, CellMeasurer } from "react-virtualized";
 import "react-virtualized/styles.css";
 import { motion } from 'framer-motion';
 
-import HistoryCard from "../ui/Card/HistoryCard";
+// Import các component card mới
+import HistoryRecordCard from "../ui/Card/HistoryRecordCard"; 
+import HistoryGroupSummaryCard from "../ui/Card/HistoryGroupSummaryCard"; 
 import AdminPageSkeleton from "./HistoryPageSkeleton";
 import type { ListRowProps } from "react-virtualized";
 import { useAdminPageLogic } from "../../hooks/useHistoryPage";
+import type { GroupedHistoryData, HistoryRecord } from "../../hooks/useHistoryPage";
 
 // Sử dụng motion.div thay vì motion(HistoryCard)
 const MotionDiv = motion.div;
 
+// Định nghĩa kiểu cho dữ liệu đã làm phẳng
+type FlatListItem = 
+  | { type: 'summary'; data: GroupedHistoryData }
+  | { type: 'record'; data: HistoryRecord };
+
 function HistoryPage() {
-  const {
-    searchTerm,
-    cache,
-    isPageLoading,
-    filteredHistory,
-    cardVariants,
-    tableHeaders,
-    uniqueNames,
-    selectedName,
-    selectedDate,
-    lastRefresh,
-    refreshData,
-    formatLastRefresh,
-    setSearchTerm,
-    setSelectedName,
-    setSelectedDate,
-  } = useAdminPageLogic();
+   const {
+      searchTerm,
+      cache,
+      isPageLoading,
+      filteredHistory, 
+      cardVariants,
+      tableHeaders,
+      uniqueNames,
+      selectedName,
+      selectedDate,
+      lastRefresh,
+      refreshData,
+      formatLastRefresh,
+      setSearchTerm,
+      setSelectedName,
+      setSelectedDate,
+   } = useAdminPageLogic();
 
-  // Hiển thị bộ khung trong khi tải trang
-  if (isPageLoading) return <AdminPageSkeleton />
+  // --- BƯỚC 1: LÀM PHẲNG DỮ LIỆU ---
+  // ĐÃ DI CHUYỂN LÊN TRÊN CÙNG (trước câu lệnh return)
+  const flattenedData: FlatListItem[] = useMemo(() => {
+    const flatList: FlatListItem[] = [];
+    filteredHistory.forEach(group => {
+      // Thêm hàng tóm tắt (màu xanh)
+      flatList.push({ type: 'summary', data: group });
+      // Thêm tất cả các bản ghi con
+      flatList.push(...group.records.map(record => ({ type: 'record', data: record } as FlatListItem)));
+    });
+    return flatList;
+  }, [filteredHistory]);
 
-  const rowRenderer = ({ index, key, parent, style }: ListRowProps) => {
-    const item = filteredHistory[index];
-    return (
-      <CellMeasurer cache={cache} columnIndex={0} key={key} parent={parent} rowIndex={index}>
-        {({ registerChild, measure }) => (
-          <div ref={registerChild as React.RefCallback<HTMLDivElement>} style={style} className="p-2">
-            <MotionDiv
-              variants={cardVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.3 }}
-              layout
-              onLoad={measure}
-            >
-              <HistoryCard data={item} />
-            </MotionDiv>
-          </div>
-        )}
-      </CellMeasurer>
-    );
-  };
+   // Hiển thị bộ khung trong khi tải trang
+   if (isPageLoading) return <AdminPageSkeleton />
+
+  // --- BƯỚC 2: CẬP NHẬT ROW RENDERER ---
+   const rowRenderer = ({ index, key, parent, style }: ListRowProps) => {
+      const item = flattenedData[index]; 
+
+    const itemStyle = item.type === 'summary' 
+        ? { ...style, padding: '8px 8px 4px 8px' } 
+        : { ...style, padding: '4px 8px 8px 8px' }; 
+
+      return (
+         <CellMeasurer cache={cache} columnIndex={0} key={key} parent={parent} rowIndex={index}>
+            {({ registerChild, measure }) => (
+               <div ref={registerChild as React.RefCallback<HTMLDivElement>} style={itemStyle}>
+                  <MotionDiv
+                     variants={cardVariants}
+                     initial="hidden"
+                     whileInView="visible"
+                     viewport={{ once: true, amount: 0.3 }}
+                     layout
+                onLoad={measure}
+                  >
+                     {item.type === 'summary' ? (
+                <HistoryGroupSummaryCard data={item.data as GroupedHistoryData} />
+              ) : (
+                <HistoryRecordCard data={item.data as HistoryRecord} />
+              )}
+                  </MotionDiv>
+               </div>
+            )}
+         </CellMeasurer>
+      );
+   };
 
   return (
     <div className="flex flex-col h-full">
@@ -73,7 +104,7 @@ function HistoryPage() {
               onChange={(e) => setSelectedName(e.target.value)}
               className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
             >
-              <option value="all">Tên phôi keo</option>
+              <option value="">Tên phôi keo</option>
               {uniqueNames.map(name => <option key={name} value={name}>{name}</option>)}
             </select>
 
@@ -130,34 +161,37 @@ function HistoryPage() {
         </div>
       </div>
 
-      {/* List */}
-      <div className="mt-4 flex-1 min-h-screen px-6">
-        
-        <div className="hidden md:grid grid-cols-8 pl-2 pr-2">
-            {tableHeaders.map((header) => ( <div key={header} className="bg-sky-300 text-black text-center p-2 font-bold border-r border-sky-400 last:border-r-0">{header}</div> ))}
-        </div>
-        {filteredHistory.length > 0 ? (
-          <AutoSizer>
-            {({ height, width }) => (
-              <List
-                width={width}
-                height={height}
-                rowCount={filteredHistory.length}
-                rowHeight={cache.rowHeight}
-                rowRenderer={rowRenderer}
-                className="no-scrollbar"
-                data={filteredHistory}
-              />
+         {/* List */}
+         <div className="flex-1 min-h-screen px-4 md:px-6">
+            
+            <div className="hidden md:grid grid-cols-9 pl-2 pr-2 mt-4">
+                  {tableHeaders.map((header) => ( <div key={header} className="bg-sky-300 text-black text-center p-2 font-bold border-r border-sky-400 last:border-r-0 text-sm">{header}</div> ))}
+            </div>
+
+            {flattenedData.length > 0 ? (
+               <AutoSizer>
+                  {({ height, width }) => (
+                     <List
+                        width={width}
+                        height={height}
+                        rowCount={flattenedData.length} 
+                        deferredMeasurementCache={cache}
+                        rowHeight={cache.rowHeight}
+                        rowRenderer={rowRenderer}
+                        className="no-scrollbar"
+                        data={flattenedData} 
+                
+                     />
+                  )}
+               </AutoSizer>
+            ) : (
+               <p className="text-center text-gray-500 mt-10">
+                  Không tìm thấy kết quả nào.
+               </p>
             )}
-          </AutoSizer>
-        ) : (
-          <p className="text-center text-gray-500 mt-10">
-            Không tìm thấy kết quả nào.
-          </p>
-        )}
+         </div>
       </div>
-    </div>
-  );
+   );
 }
 
 export default HistoryPage;
