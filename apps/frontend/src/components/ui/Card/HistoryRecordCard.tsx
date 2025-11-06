@@ -3,9 +3,10 @@ import type { HistoryRecord } from "../../../hooks/useHistoryPage";
 
 interface HistoryRecordCardProps {
   data: HistoryRecord;
+  isStriped: boolean;
 }
 
-const HistoryRecordCard: React.FC<HistoryRecordCardProps> = ({ data }) => {
+const HistoryRecordCard: React.FC<HistoryRecordCardProps> = ({ data, isStriped }) => {
   const formatDateTime = (isoString: string) => {
     if (!isoString) return "N/A";
     try {
@@ -45,8 +46,15 @@ const HistoryRecordCard: React.FC<HistoryRecordCardProps> = ({ data }) => {
     </span>,
   ];
 
+  const rowClassName = `
+    grid grid-cols-9 
+    rounded-lg border border-gray-200 
+    shadow-sm hover:shadow-md transition-all duration-200
+    ${isStriped ? 'bg-gray-200' : 'bg-white'} 
+  `; // <-- Thêm logic bg-white / bg-gray-50
+
   return (
-    <div className="grid grid-cols-9 bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200">
+    <div className={rowClassName}>
       {tableValues.map((value, index) => (
         <div
           key={index}

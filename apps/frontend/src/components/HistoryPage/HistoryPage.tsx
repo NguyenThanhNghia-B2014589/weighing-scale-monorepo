@@ -19,7 +19,7 @@ import type {
 // Định nghĩa kiểu cho dữ liệu đã làm phẳng
 type FlatListItem = 
   | { type: 'summary'; data: GroupedHistoryData }
-  | { type: 'record'; data: HistoryRecord };
+  | { type: 'record'; data: HistoryRecord; recordIndex: number };
 
 function HistoryPage(props: AdminPageLogicReturn) {
   const {
@@ -47,7 +47,12 @@ function HistoryPage(props: AdminPageLogicReturn) {
       // Thêm hàng tóm tắt (màu xanh)
       flatList.push({ type: 'summary', data: group });
       // Thêm tất cả các bản ghi con
-      flatList.push(...group.records.map(record => ({ type: 'record', data: record } as FlatListItem)));
+      // Thêm index khi map
+      flatList.push(...group.records.map((record, index) => ({ 
+        type: 'record', 
+        data: record, 
+        recordIndex: index // <-- Gán index (0, 1, 2...)
+      } as FlatListItem)));
     });
     return flatList;
   }, [filteredHistory]);
@@ -78,7 +83,13 @@ function HistoryPage(props: AdminPageLogicReturn) {
               {item.type === 'summary' ? (
                 <HistoryGroupSummaryCard data={item.data as GroupedHistoryData} />
               ) : (
-                <HistoryRecordCard data={item.data as HistoryRecord} />
+                <HistoryRecordCard 
+                  data={item.data as HistoryRecord} 
+                  // Truyền prop isStriped
+                  // (item.recordIndex % 2 === 0) sẽ là chẵn (trắng)
+                  // (item.recordIndex % 2 !== 0) sẽ là lẻ (xám)
+                  isStriped={item.recordIndex % 2 !== 0} 
+                />
               )}
             </div>
           </div>
