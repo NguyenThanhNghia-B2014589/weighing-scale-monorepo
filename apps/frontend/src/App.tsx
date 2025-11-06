@@ -16,13 +16,9 @@ import NotFoundPage from './components/404/NotFoundPage';
 import SettingsModal from './components/ui/SettingsModal/SettingsModal'; // <-- path sửa
 import { useAdminPageLogic } from './hooks/useHistoryPage';
 
+
 function App() {
-  const {
-    refreshData,
-    formatLastRefresh,
-    isAutoRefresh,
-    setIsAutoRefresh,
-  } = useAdminPageLogic();
+  const historyLogic = useAdminPageLogic();
 
   return (
     <div className="min-h-screen bg-sky-200 flex flex-col">
@@ -30,10 +26,10 @@ function App() {
 
       {/* SettingsModal đặt ngoài <Routes> */}
       <SettingsModal
-        isAutoRefresh={isAutoRefresh}
-        setIsAutoRefresh={setIsAutoRefresh}
-        refreshData={refreshData}
-        formatLastRefresh={formatLastRefresh}
+        isAutoRefresh={historyLogic.isAutoRefresh}
+        setIsAutoRefresh={historyLogic.setIsAutoRefresh}
+        refreshData={historyLogic.refreshData}
+        formatLastRefresh={historyLogic.formatLastRefresh}
       />
 
       <main className="flex-grow pt-[70px]">
@@ -64,7 +60,7 @@ function App() {
             path="/history"
             element={
               <AdminProtectedRoute>
-                <HistoryPage />
+                <HistoryPage {...historyLogic}/>
               </AdminProtectedRoute>
             }
           />

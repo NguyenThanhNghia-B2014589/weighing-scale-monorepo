@@ -186,3 +186,4 @@ export function useAdminPageLogic() {
   refreshData,
  };
 }
+export type AdminPageLogicReturn = ReturnType<typeof useAdminPageLogic>;

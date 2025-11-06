@@ -1,5 +1,5 @@
 // src/components/HistoryPage/HistoryPage.tsx
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect, useRef } from "react";
 import { List, AutoSizer, CellMeasurer } from "react-virtualized";
 import "react-virtualized/styles.css";
 import { motion } from 'framer-motion';
@@ -9,8 +9,12 @@ import HistoryRecordCard from "../ui/Card/HistoryRecordCard";
 import HistoryGroupSummaryCard from "../ui/Card/HistoryGroupSummaryCard"; 
 import AdminPageSkeleton from "./HistoryPageSkeleton";
 import type { ListRowProps } from "react-virtualized";
-import { useAdminPageLogic } from "../../hooks/useHistoryPage";
-import type { GroupedHistoryData, HistoryRecord } from "../../hooks/useHistoryPage";
+
+import type { 
+  GroupedHistoryData, 
+  HistoryRecord, 
+  AdminPageLogicReturn // Type chúng ta vừa export
+} from "../../hooks/useHistoryPage";
 
 // Sử dụng motion.div thay vì motion(HistoryCard)
 const MotionDiv = motion.div;
@@ -20,24 +24,24 @@ type FlatListItem =
   | { type: 'summary'; data: GroupedHistoryData }
   | { type: 'record'; data: HistoryRecord };
 
-function HistoryPage() {
-   const {
-      searchTerm,
-      cache,
-      isPageLoading,
-      filteredHistory, 
-      cardVariants,
-      tableHeaders,
-      uniqueNames,
-      selectedName,
-      selectedDate,
-      lastRefresh,
-      refreshData,
-      formatLastRefresh,
-      setSearchTerm,
-      setSelectedName,
-      setSelectedDate,
-   } = useAdminPageLogic();
+function HistoryPage(props: AdminPageLogicReturn) {
+  const {
+    searchTerm,
+    cache,
+    isPageLoading,
+    filteredHistory, 
+    cardVariants,
+    tableHeaders,
+    uniqueNames,
+    selectedName,
+    selectedDate,
+    lastRefresh,
+    refreshData,
+    formatLastRefresh,
+    setSearchTerm,
+    setSelectedName,
+    setSelectedDate,
+  } =props;
 
   // --- BƯỚC 1: LÀM PHẲNG DỮ LIỆU ---
   // ĐÃ DI CHUYỂN LÊN TRÊN CÙNG (trước câu lệnh return)
@@ -52,40 +56,47 @@ function HistoryPage() {
     return flatList;
   }, [filteredHistory]);
 
-   // Hiển thị bộ khung trong khi tải trang
-   if (isPageLoading) return <AdminPageSkeleton />
+   const listRef = useRef<List>(null);
+
+  useEffect(() => {
+    cache.clearAll();
+    listRef.current?.recomputeRowHeights();
+  }, [flattenedData, cache]);
+
+  // Hiển thị bộ khung trong khi tải trang
+  if (isPageLoading) return <AdminPageSkeleton />
 
   // --- BƯỚC 2: CẬP NHẬT ROW RENDERER ---
-   const rowRenderer = ({ index, key, parent, style }: ListRowProps) => {
-      const item = flattenedData[index]; 
+  const rowRenderer = ({ index, key, parent, style }: ListRowProps) => {
+    const item = flattenedData[index]; 
 
     const itemStyle = item.type === 'summary' 
         ? { ...style, padding: '8px 8px 4px 8px' } 
         : { ...style, padding: '4px 8px 8px 8px' }; 
 
-      return (
-         <CellMeasurer cache={cache} columnIndex={0} key={key} parent={parent} rowIndex={index}>
-            {({ registerChild, measure }) => (
-               <div ref={registerChild as React.RefCallback<HTMLDivElement>} style={itemStyle}>
-                  <MotionDiv
-                     variants={cardVariants}
-                     initial="hidden"
-                     whileInView="visible"
-                     viewport={{ once: true, amount: 0.3 }}
-                     layout
-                onLoad={measure}
-                  >
-                     {item.type === 'summary' ? (
+    return (
+      <CellMeasurer cache={cache} columnIndex={0} key={key} parent={parent} rowIndex={index}>
+        {({ registerChild,  }) => (
+          <div ref={registerChild as React.RefCallback<HTMLDivElement>} style={itemStyle}>
+            <MotionDiv
+              variants={cardVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.3 }}
+              //layout
+              //onLoad={measure}
+            >
+              {item.type === 'summary' ? (
                 <HistoryGroupSummaryCard data={item.data as GroupedHistoryData} />
               ) : (
                 <HistoryRecordCard data={item.data as HistoryRecord} />
               )}
-                  </MotionDiv>
-               </div>
-            )}
-         </CellMeasurer>
-      );
-   };
+            </MotionDiv>
+          </div>
+        )}
+      </CellMeasurer>
+    );
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -161,37 +172,49 @@ function HistoryPage() {
         </div>
       </div>
 
-         {/* List */}
-         <div className="flex-1 min-h-screen px-4 md:px-6">
-            
-            <div className="hidden md:grid grid-cols-9 pl-2 pr-2 mt-4">
-                  {tableHeaders.map((header) => ( <div key={header} className="bg-sky-300 text-black text-center p-2 font-bold border-r border-sky-400 last:border-r-0 text-sm">{header}</div> ))}
+      {/* List */}
+      <div className="flex-1 px-4 md:px-6 flex flex-col overflow-hidden">
+        {/* Header bảng */}
+        <div className="hidden md:grid grid-cols-9 pl-2 pr-2 mt-4 flex-shrink-0">
+          {tableHeaders.map((header) => (
+            <div
+              key={header}
+              className="bg-sky-300 text-black text-center p-2 font-bold border-r border-sky-400 last:border-r-0 text-sm"
+            >
+              {header}
             </div>
+          ))}
+        </div>
 
+        {/* Vùng danh sách có thể cuộn */}
+        <div className="flex-1 overflow-hidden mt-2">
+          <div className="h-[calc(100vh-200px)]"> {/* 👈 đảm bảo có chiều cao cụ thể */}
             {flattenedData.length > 0 ? (
-               <AutoSizer>
-                  {({ height, width }) => (
-                     <List
-                        width={width}
-                        height={height}
-                        rowCount={flattenedData.length} 
-                        deferredMeasurementCache={cache}
-                        rowHeight={cache.rowHeight}
-                        rowRenderer={rowRenderer}
-                        className="no-scrollbar"
-                        data={flattenedData} 
-                
-                     />
-                  )}
-               </AutoSizer>
+              <AutoSizer>
+                {({ height, width }) => {
+
+                  return (
+                    <List
+                      width={width}
+                      height={height || 600} // fallback nếu vẫn 0
+                      rowCount={flattenedData.length}
+                      rowHeight={cache.rowHeight}
+                      rowRenderer={rowRenderer}
+                      className="no-scrollbar"
+                    />
+                  );
+                }}
+              </AutoSizer>
             ) : (
-               <p className="text-center text-gray-500 mt-10">
-                  Không tìm thấy kết quả nào.
-               </p>
+              <p className="text-center text-gray-500 mt-10">
+                Không tìm thấy kết quả nào.
+              </p>
             )}
-         </div>
+          </div>
+        </div>
       </div>
-   );
+    </div>
+  );
 }
 
 export default HistoryPage;
