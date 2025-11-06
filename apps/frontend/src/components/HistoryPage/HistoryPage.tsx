@@ -2,7 +2,7 @@
 import React, { useMemo, useEffect, useRef } from "react";
 import { List, AutoSizer, CellMeasurer } from "react-virtualized";
 import "react-virtualized/styles.css";
-import { motion } from 'framer-motion';
+//import { motion } from 'framer-motion';
 
 // Import các component card mới
 import HistoryRecordCard from "../ui/Card/HistoryRecordCard"; 
@@ -16,9 +16,6 @@ import type {
   AdminPageLogicReturn // Type chúng ta vừa export
 } from "../../hooks/useHistoryPage";
 
-// Sử dụng motion.div thay vì motion(HistoryCard)
-const MotionDiv = motion.div;
-
 // Định nghĩa kiểu cho dữ liệu đã làm phẳng
 type FlatListItem = 
   | { type: 'summary'; data: GroupedHistoryData }
@@ -29,8 +26,7 @@ function HistoryPage(props: AdminPageLogicReturn) {
     searchTerm,
     cache,
     isPageLoading,
-    filteredHistory, 
-    cardVariants,
+    filteredHistory,
     tableHeaders,
     uniqueNames,
     selectedName,
@@ -78,20 +74,13 @@ function HistoryPage(props: AdminPageLogicReturn) {
       <CellMeasurer cache={cache} columnIndex={0} key={key} parent={parent} rowIndex={index}>
         {({ registerChild,  }) => (
           <div ref={registerChild as React.RefCallback<HTMLDivElement>} style={itemStyle}>
-            <MotionDiv
-              variants={cardVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.3 }}
-              //layout
-              //onLoad={measure}
-            >
+            <div>
               {item.type === 'summary' ? (
                 <HistoryGroupSummaryCard data={item.data as GroupedHistoryData} />
               ) : (
                 <HistoryRecordCard data={item.data as HistoryRecord} />
               )}
-            </MotionDiv>
+            </div>
           </div>
         )}
       </CellMeasurer>
