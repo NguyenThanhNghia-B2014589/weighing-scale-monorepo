@@ -42,7 +42,7 @@ const HistoryGroupSummaryCard: React.FC<HistoryGroupSummaryCardProps> = ({
       <div>
         <span className="text-gray-600">Xuất: </span>
         <span>
-          {formatNumber(totalXuat)} / {formatNumber(totalTargetQty)} kg
+          {formatNumber(totalXuat)} / {formatNumber(totalNhap)} kg
         </span>
       </div>
       <div>

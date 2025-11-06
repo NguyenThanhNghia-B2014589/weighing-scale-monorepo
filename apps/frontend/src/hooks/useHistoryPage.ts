@@ -117,43 +117,53 @@ export function useAdminPageLogic() {
 
   // Hàm kiểm tra ngày
   const isDateMatch = useCallback((timestamp: string, selectedDate: string): boolean => {
-    if (!selectedDate) return true;
-    
-    const date = new Date(timestamp);
-    const dateStr = date.toISOString().substring(0, 10);
-    
-    return dateStr === selectedDate;
-  }, []);
+  if (!selectedDate) return true;
+    try {
+      const date = new Date(timestamp);
+      const year = date.getFullYear();
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const day = date.getDate().toString().padStart(2, '0');
+      const localDateStr = `${year}-${month}-${day}`;
+      return localDateStr === selectedDate;
+    } catch (error) {
+      console.error("Lỗi format ngày:", error, timestamp);
+      return false;
+    }
+ }, []);
+
 
   // Lọc dữ liệu (vẫn lọc theo nhóm)
   const filteredHistory = useMemo(() => {
-    return groupedHistory.filter((group) => {
-      // Nếu không chọn tên phôi keo => hiển thị tất cả
-      if (!selectedName || selectedName === '') return true;
+    const lowerCaseTerm = debouncedTerm.toLowerCase();
 
-      // Nếu chọn tên phôi keo => chỉ cần group có record trùng tên là hiển thị toàn bộ group
-      const hasMatchingName = group.records.some(r => r.tenPhoiKeo === selectedName);
+  return groupedHistory.filter((group) => {
+   
+   // 1. Kiểm tra Tên (Đã đúng)
+   const nameMatch = !selectedName || group.records.some(r => r.tenPhoiKeo === selectedName);
 
-      // Lọc theo ngày (nếu có)
-      const hasMatchingDate = !selectedDate || 
-        group.records.some(r => isDateMatch(r.mixTime, selectedDate));
+   // 2. Kiểm tra Ngày (Đã đúng)
+   const dateMatch = !selectedDate || 
+    group.records.some(r => isDateMatch(r.mixTime, selectedDate));
 
-      // Lọc theo từ khóa (nếu có)
-      const hasMatchingSearch = !debouncedTerm ||
-        group.ovNO.toLowerCase().includes(debouncedTerm.toLowerCase()) ||
-        (group.memo?.toLowerCase() ?? "").includes(debouncedTerm.toLowerCase()) ||
-        group.records.some(r =>
-          (r.maCode?.toLowerCase().includes(debouncedTerm.toLowerCase())) ||
-          (r.tenPhoiKeo?.toLowerCase().includes(debouncedTerm.toLowerCase())) ||
-          (r.soLo?.toString().includes(debouncedTerm)) ||
-          (r.soMay?.toLowerCase().includes(debouncedTerm.toLowerCase())) ||
-          (r.nguoiThaoTac?.toLowerCase().includes(debouncedTerm.toLowerCase()))
-        );
+   // 3. Kiểm tra Tìm kiếm (ĐÃ SỬA LỖI TYPO)
+   const searchMatch = !lowerCaseTerm ||
+    (group.ovNO && group.ovNO.toLowerCase().includes(lowerCaseTerm)) ||
+    group.records.some(r =>
+     (r.maCode && r.maCode.toLowerCase().includes(lowerCaseTerm)) ||
+            // SỬA LỖI Ở ĐÂY:
+            // Sai: r.tenPhoiKeo.toLowerCase(lowerCaseTerm)
+            // Đúng: r.tenPhoiKeo.toLowerCase().includes(lowerCaseTerm)
+     (r.tenPhoiKeo && r.tenPhoiKeo.toLowerCase().includes(lowerCaseTerm)) ||
+     (r.soLo && r.soLo.toString().includes(lowerCaseTerm)) ||
+     (r.soMay && r.soMay.toLowerCase().includes(lowerCaseTerm)) ||
+     (r.nguoiThaoTac && r.nguoiThaoTac.toLowerCase().includes(lowerCaseTerm)) ||
+     (r.loai && r.loai.toLowerCase().includes(lowerCaseTerm))
+    );
 
-      // ✅ Giữ lại toàn bộ nhóm nếu nó có tên trùng (và match các filter khác)
-      return hasMatchingName && hasMatchingDate && hasMatchingSearch;
-    });
-  }, [debouncedTerm, groupedHistory, selectedName, selectedDate, isDateMatch]);
+   // 4. Trả về kết quả của CẢ BA
+   return nameMatch && dateMatch && searchMatch;
+  });
+ }, [debouncedTerm, groupedHistory, selectedName, selectedDate, isDateMatch]);
 
   return {
     tableHeaders,
@@ -172,6 +182,7 @@ export function useAdminPageLogic() {
     isAutoRefresh,
     setIsAutoRefresh,
     refreshData,
+    isDateMatch
   };
 }
 export type AdminPageLogicReturn = ReturnType<typeof useAdminPageLogic>;

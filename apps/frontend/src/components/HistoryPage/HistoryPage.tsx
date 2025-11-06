@@ -37,25 +37,60 @@ function HistoryPage(props: AdminPageLogicReturn) {
     setSearchTerm,
     setSelectedName,
     setSelectedDate,
+    isDateMatch,
   } =props;
 
   // --- BƯỚC 1: LÀM PHẲNG DỮ LIỆU ---
   // ĐÃ DI CHUYỂN LÊN TRÊN CÙNG (trước câu lệnh return)
   const flattenedData: FlatListItem[] = useMemo(() => {
     const flatList: FlatListItem[] = [];
+    // Chuyển search term thành chữ thường 1 lần
+    const lowerCaseTerm = searchTerm.toLowerCase();
+  
     filteredHistory.forEach(group => {
-      // Thêm hàng tóm tắt (màu xanh)
-      flatList.push({ type: 'summary', data: group });
-      // Thêm tất cả các bản ghi con
-      // Thêm index khi map
-      flatList.push(...group.records.map((record, index) => ({ 
+      
+    // Bắt đầu với tất cả record của group (group này đã được lọc bởi hook)
+    let recordsToShow = group.records;
+
+    // 1. Lọc theo Ngày (logic cũ đã đúng)
+    if (selectedDate) {
+      recordsToShow = recordsToShow.filter(record => isDateMatch(record.mixTime, selectedDate));
+    }
+
+    // 2. Lọc theo Search Term (LOGIC MỚI)
+    if (lowerCaseTerm) {
+      // Kiểm tra xem search term có khớp với OVNO của group không
+      const groupMatch = group.ovNO && group.ovNO.toLowerCase().includes(lowerCaseTerm);
+
+      // Nếu search term KHÔNG khớp với group (ví dụ: search 'nhap')
+      // thì chúng ta mới lọc các record bên trong
+      if (!groupMatch) { 
+        recordsToShow = recordsToShow.filter(r => 
+          (r.maCode && r.maCode.toLowerCase().includes(lowerCaseTerm)) ||
+          (r.tenPhoiKeo && r.tenPhoiKeo.toLowerCase().includes(lowerCaseTerm)) ||
+          (r.soLo && r.soLo.toString().includes(lowerCaseTerm)) ||
+          (r.soMay && r.soMay.toLowerCase().includes(lowerCaseTerm)) ||
+          (r.nguoiThaoTac && r.nguoiThaoTac.toLowerCase().includes(lowerCaseTerm)) ||
+          (r.loai && r.loai.toLowerCase().includes(lowerCaseTerm))
+        );
+      }
+      // Nếu search term khớp với group (ví dụ: search 'PD2025'),
+      // chúng ta KHÔNG lọc, mà hiển thị tất cả record của group đó.
+    }
+
+    // Thêm hàng tóm tắt
+    flatList.push({ type: 'summary', data: group });
+   
+      // Chỉ thêm các record đã được lọc (recordsToShow)
+    flatList.push(...recordsToShow.map((record, index) => ({ 
         type: 'record', 
         data: record, 
-        recordIndex: index // <-- Gán index (0, 1, 2...)
-      } as FlatListItem)));
-    });
-    return flatList;
-  }, [filteredHistory]);
+        recordIndex: index 
+    } as FlatListItem)));
+  });
+  return flatList;
+    // Thêm searchTerm vào mảng dependencies
+ }, [filteredHistory, selectedDate, isDateMatch, searchTerm]);
 
    const listRef = useRef<List>(null);
 

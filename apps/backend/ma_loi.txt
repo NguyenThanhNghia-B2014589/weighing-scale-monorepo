@@ -1,1 +1,1 @@
-304: ko có gì thay đổi
+GET 304 /api/history: lịch sử ko có gì thay đổi
