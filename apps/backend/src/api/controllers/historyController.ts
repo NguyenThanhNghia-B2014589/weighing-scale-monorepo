@@ -6,31 +6,33 @@ import sql from 'mssql';
 
 export const getHistory = async (req: Request, res: Response) => {
   try {
-    // 2. Lấy 'days' từ query, mặc định là '7'
+    // 1. Lấy 'days' từ query, mặc định là '7'
     const { days = '7' } = req.query;
 
-  const pool = getPool();
+    const pool = getPool();
     const request = pool.request(); // Tạo request
 
-  // 3. Xây dựng mệnh đề WHERE động
-    const whereClauses = [
-      "H.TimeWeigh IS NOT NULL"
-    ];
-
-    // Kiểm tra nếu 'days' không phải là 'all'
+    // --- 2. LOGIC LỌC NGÀY ---
+    let dateFilterSubQuery = ""; // Mặc định là không lọc (lấy 'all')
     if (days !== 'all') {
       const numDays = parseInt(days as string, 10);
-      
-      // Chỉ thêm điều kiện nếu nó là một số hợp lệ
+   
       if (!isNaN(numDays) && numDays > 0) {
-        // Thêm mệnh đề SQL
-        whereClauses.push("H.TimeWeigh >= DATEADD(day, -@daysParam, GETDATE())");
-        // Thêm tham số (parameter) để chống SQL Injection
+        // Tạo một câu subquery để lọc các OVNO có chứa maCode trong khoảng thời gian
+        dateFilterSubQuery = `
+        WHERE S.OVNO IN (
+          SELECT DISTINCT S_sub.OVNO
+          FROM Outsole_VML_History AS H_sub
+          INNER JOIN Outsole_VML_WorkS AS S_sub ON H_sub.QRCode = S_sub.QRCode
+          WHERE H_sub.TimeWeigh >= DATEADD(day, -@daysParam, GETDATE())
+        )
+        `;
+        // Thêm tham số (parameter)
         request.input('daysParam', sql.Int, numDays);
       }
     }
 
-    // 4. Lấy TẤT CẢ bản ghi lịch sử (với WHERE động)
+    // 3. Lấy TẤT CẢ bản ghi lịch sử (với WHERE động)
     const historyQuery = `
       SELECT 
         H.QRCode AS maCode, H.TimeWeigh AS mixTime, H.KhoiLuongCan AS realQty, H.loai,
@@ -43,17 +45,16 @@ export const getHistory = async (req: Request, res: Response) => {
       LEFT JOIN Outsole_VML_WorkS AS S ON H.QRCode = S.QRCode
       LEFT JOIN Outsole_VML_Work AS W ON S.OVNO = W.OVNO
       LEFT JOIN Outsole_VML_Persion AS P ON S.MUserID = P.MUserID
-      WHERE 
-        ${whereClauses.join(' AND ')}
+     ${dateFilterSubQuery} 
       ORDER BY 
         S.OVNO, H.TimeWeigh DESC 
     `;
     
-    // 5. Thực thi query
-  const historyResult = await request.query(historyQuery);
-  const records = historyResult.recordset;
+    // Thực thi query
+    const historyResult = await request.query(historyQuery);
+    const records = historyResult.recordset;
 
-    // --- 2. LẤY DỮ LIỆU ĐẾM PACKAGE (Tất cả OVNO) ---
+    // --- LẤY DỮ LIỆU ĐẾM PACKAGE (Tất cả OVNO) ---
     // (Query này chạy 1 lần lấy hết)
     const packageCountResult = await pool.request().query(`
       SELECT 
@@ -68,7 +69,7 @@ export const getHistory = async (req: Request, res: Response) => {
       yTotalMap.set(row.OVNO, row.Y_TotalPackages);
     }
 
-    // 3. Xử lý và Nhóm dữ liệu trong Node.js
+    // Xử lý và Nhóm dữ liệu trong Node.js
     const groupedData: any = {};
 
     for (const record of records) {
@@ -101,7 +102,7 @@ export const getHistory = async (req: Request, res: Response) => {
       }
     }
 
-    // 4. Chuyển đổi từ Object sang Array để trả về
+    // Chuyển đổi từ Object sang Array để trả về
     const responseArray = Object.values(groupedData).map((group: any) => {
       // Đếm X (số lượng maCode đã cân nhập)
       group.x_WeighedNhap = group.weighedNhapPackages.size;
