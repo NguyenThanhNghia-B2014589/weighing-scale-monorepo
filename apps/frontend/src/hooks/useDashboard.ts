@@ -1,25 +1,32 @@
-// src/hooks/useDashboard.ts
+// apps/frontend/src/hooks/useDashboard.ts
 
 import { useMemo, useState, useCallback, useEffect } from "react";
 import { useAutoRefresh } from "./useAutoRefresh";
 import apiClient from "../api/apiClient";
 
-// Định nghĩa kiểu dữ liệu từ API /sync/unweighed
-interface UnweighedRecord {
-  maCode: string;
-  ovNO: string;
-  package: string;
-  mUserID: string;
-  qtys: number;
-  realQty: number | null;
-  mixTime: string | null;
-  tenPhoiKeo: string;
-  soMay: string;
-  memo: string;
-  totalTargetQty: number;
-  nguoiThaoTac: string;
-  soLo: string;
-  loai: string;
+// Định nghĩa kiểu dữ liệu cho API mới
+interface InventorySummary {
+  summary: {
+    totalNhap: number;
+    totalXuat: number;
+    totalTon: number;
+  };
+  byGlueType: Array<{
+    tenPhoiKeo: string;
+    nhap: number;
+    xuat: number;
+    ton: number;
+  }>;
+}
+
+interface HourlyWeighingData {
+  hour: string;
+  totalWeight: number;
+}
+
+interface WeighingTrendData {
+  date: string;
+  weighingCount: number;
 }
 
 function getTodayString(): string {
@@ -31,23 +38,63 @@ function getTodayString(): string {
 }
 
 export function useDashboard() {
-  const [weighingHistory, setWeighingHistory] = useState<UnweighedRecord[]>([]);
+  const [inventorySummary, setInventorySummary] = useState<InventorySummary | null>(null);
+  const [hourlyData, setHourlyData] = useState<HourlyWeighingData[]>([]);
+  const [trendData, setTrendData] = useState<WeighingTrendData[]>([]);
   const [selectedDate, setSelectedDate] = useState(getTodayString());
 
-  // Callback để làm mới dữ liệu
-  const dataRefreshCallback = useCallback(async () => {
+  // Callback để làm mới dữ liệu tồn kho (biểu đồ tròn)
+  const fetchInventorySummary = useCallback(async () => {
     try {
-      const response = await apiClient.get<UnweighedRecord[]>('/sync/unweighed');
-      setWeighingHistory(response.data);
+      const response = await apiClient.get<InventorySummary>('/dashboard/inventory-summary');
+      setInventorySummary(response.data);
     } catch (error) {
-      console.error("Lỗi khi lấy dữ liệu dashboard:", error);
+      console.error("Lỗi khi lấy dữ liệu tồn kho:", error);
     }
   }, []);
+
+  // Callback để làm mới dữ liệu cân theo giờ (biểu đồ cột)
+  const fetchHourlyWeighing = useCallback(async (date: string) => {
+    try {
+      const response = await apiClient.get<HourlyWeighingData[]>('/dashboard/hourly-weighing', {
+        params: { date }
+      });
+      setHourlyData(response.data);
+    } catch (error) {
+      console.error("Lỗi khi lấy dữ liệu cân theo giờ:", error);
+    }
+  }, []);
+
+  // Callback để làm mới xu hướng (biểu đồ diện tích)
+  const fetchWeighingTrend = useCallback(async () => {
+    try {
+      const response = await apiClient.get<WeighingTrendData[]>('/dashboard/weighing-trend', {
+        params: { months: 6 }
+      });
+      setTrendData(response.data);
+    } catch (error) {
+      console.error("Lỗi khi lấy xu hướng cân:", error);
+    }
+  }, []);
+
+  // Callback tổng hợp để làm mới TẤT CẢ dữ liệu
+  const dataRefreshCallback = useCallback(async () => {
+    await Promise.all([
+      fetchInventorySummary(),
+      fetchHourlyWeighing(selectedDate),
+      fetchWeighingTrend()
+    ]);
+  }, [fetchInventorySummary, fetchHourlyWeighing, fetchWeighingTrend, selectedDate]);
 
   // Lấy dữ liệu lần đầu
   useEffect(() => {
     dataRefreshCallback();
   }, [dataRefreshCallback]);
+
+  // Cập nhật dữ liệu cân theo giờ khi thay đổi ngày
+  useEffect(() => {
+    fetchHourlyWeighing(selectedDate);
+  }, [selectedDate, fetchHourlyWeighing]);
 
   // Sử dụng hook useAutoRefresh
   const {
@@ -60,106 +107,57 @@ export function useDashboard() {
     formatLastRefresh,
   } = useAutoRefresh(dataRefreshCallback, {});
 
-  // --- LOGIC XỬ LÝ DỮ LIỆU CHO BIỂU ĐỒ ---
+  // --- XỬ LÝ DỮ LIỆU CHO TWO LEVEL PIE CHART ---
+  const twoLevelPieData = useMemo(() => {
+    if (!inventorySummary) return null;
 
-  // Dữ liệu cho biểu đồ cột: Tính tổng khối lượng cân theo từng khung giờ
+    const { summary, byGlueType } = inventorySummary;
+
+    // Vòng trong: Tổng quan (Tồn và Xuất)
+    const innerData = [
+      { name: 'Tồn kho', value: summary.totalTon, fill: '#10b981' },
+      { name: 'Đã xuất', value: summary.totalXuat, fill: '#ef4444' }
+    ];
+    const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658'];
+
+    // Vòng ngoài: Chi tiết theo loại phôi keo (chỉ hiển thị tồn)
+    const outerData = byGlueType.map((item, index) => ({
+      name: item.tenPhoiKeo,
+      value: item.ton,
+      fill: COLORS[index % COLORS.length]
+    }));
+
+    return { innerData, outerData };
+  }, [inventorySummary]);
+
+  // Dữ liệu cho biểu đồ cột
   const hourlyWeighingData = useMemo(() => {
-    // Lọc các bản ghi đã cân (loai = 'nhap') theo ngày được chọn
-    const dailyData = weighingHistory.filter(item => {
-      if (!item.mixTime || item.loai !== 'nhap') return false;
-      
-      const itemDate = new Date(item.mixTime);
-      const selectedDateObj = new Date(selectedDate);
-      
-      return itemDate.toDateString() === selectedDateObj.toDateString();
-    });
-
-    // Nhóm theo giờ
-    const hourlyTotals = dailyData.reduce((acc, item) => {
-      if (!item.mixTime || !item.realQty) return acc;
-      
-      const date = new Date(item.mixTime);
-      const hour = date.getHours();
-      const hourKey = `${String(hour).padStart(2, '0')}:00`;
-
-      acc[hourKey] = (acc[hourKey] || 0) + item.realQty;
-      return acc;
-    }, {} as Record<string, number>);
-
-    // Tạo dữ liệu cho biểu đồ
-    const workHours = Array.from({ length: 11 }, (_, i) => 
-      `${String(i + 7).padStart(2, '0')}:00`
-    );
-    
-    return workHours.map(hour => ({
-      hour,
-      'Tổng khối lượng': hourlyTotals[hour] || 0,
+    return hourlyData.map(item => ({
+      hour: item.hour,
+      'Tổng khối lượng': item.totalWeight
     }));
+  }, [hourlyData]);
 
-  }, [weighingHistory, selectedDate]);
-
-  // Dữ liệu cho biểu đồ tròn: Đếm số lần cân của mỗi loại phôi keo
-  const glueTypeData = useMemo(() => {
-    // Chỉ đếm các bản ghi đã cân nhập
-    const cannedRecords = weighingHistory.filter(
-      item => item.loai === 'nhap' && item.realQty !== null
-    );
-
-    const glueCounts = cannedRecords.reduce((acc, item) => {
-      const name = item.tenPhoiKeo || 'Không rõ';
-      acc[name] = (acc[name] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    return Object.entries(glueCounts).map(([name, value]) => ({
-      name, 
-      value
-    }));
-  }, [weighingHistory]);
-
-  // Xu hướng số lần cân theo thời gian (theo tháng)
+  // Dữ liệu cho biểu đồ xu hướng
   const weighingTrendData = useMemo(() => {
-    // Chỉ lấy các bản ghi đã cân nhập
-    const cannedRecords = weighingHistory.filter(
-      item => item.loai === 'nhap' && item.mixTime && item.realQty !== null
-    );
+    return trendData.map(item => ({
+      date: item.date,
+      "Số lần cân": item.weighingCount
+    }));
+  }, [trendData]);
 
-    // Nhóm theo tháng/năm
-    const monthlyCounts = cannedRecords.reduce((acc, item) => {
-      if (!item.mixTime) return acc;
-      
-      const date = new Date(item.mixTime);
-      const month = date.getMonth() + 1;
-      const year = date.getFullYear();
-      const monthYear = `${String(month).padStart(2, '0')}/${year}`;
-
-      acc[monthYear] = (acc[monthYear] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    // Chuyển đổi và sắp xếp
-    return Object.entries(monthlyCounts)
-      .map(([date, count]) => ({
-        date, 
-        "Số lần cân": count
-      }))
-      .sort((a, b) => {
-        const [monthA, yearA] = a.date.split('/');
-        const [monthB, yearB] = b.date.split('/');
-        return new Date(`${yearA}-${monthA}-01`).getTime() - 
-               new Date(`${yearB}-${monthB}-01`).getTime();
-      });
-  }, [weighingHistory]);
-
-  const COLORS = ['#0088FE', '#B93992FF', '#00C49F', '#FFBB28', '#FF8042'];
-
+  
   return {
-    setSelectedDate,
-    selectedDate,
+    // Data
+    inventorySummary,
+    twoLevelPieData,
     hourlyWeighingData,
-    glueTypeData,
     weighingTrendData,
-    COLORS,
+   
+    
+    // Date selection
+    selectedDate,
+    setSelectedDate,
     
     // Refresh functionality
     refreshData,

@@ -1,18 +1,21 @@
-// src/components/DashBoard/DashBoard.tsx
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// apps/frontend/src/components/DashBoard/DashBoard.tsx
 
 import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
+import { 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, 
+  PieChart, Pie, Cell, AreaChart, Area 
+} from 'recharts';
 import { useDashboard } from '../../hooks/useDashboard';
-
 
 function DashboardPage() {
   const {
     setSelectedDate,
     selectedDate,
+    inventorySummary,
+    twoLevelPieData,
     hourlyWeighingData,
-    glueTypeData,
     weighingTrendData,
-    COLORS,
     // Refresh functionality
     lastRefresh,
     refreshData,
@@ -21,32 +24,78 @@ function DashboardPage() {
   
   return (
     <div className="px-8 py-4">
-      {/* HEADER ĐƯỢC ĐƠN GIẢN HÓA */}
+      {/* HEADER */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-800">Dashboard - Tổng Quan</h1>
         
         <div className="flex items-center gap-3 mt-4 sm:mt-0">
-          {/* Thông tin refresh cuối */}
-            <span className="text-xs text-gray-500">
-              Cập nhật lần cuối: {formatLastRefresh(lastRefresh)}
-            </span>
-            <button
-              onClick={refreshData}
-              className="p-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors flex-shrink-0"
-              title={`Làm mới dữ liệu (lần cuối: ${formatLastRefresh()})`}
-            >
-              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-            </button>
+          <span className="text-xs text-gray-500">
+            Cập nhật lần cuối: {formatLastRefresh(lastRefresh)}
+          </span>
+          <button
+            onClick={refreshData}
+            className="p-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors flex-shrink-0"
+            title={`Làm mới dữ liệu (lần cuối: ${formatLastRefresh()})`}
+          >
+            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </button>
         </div>
       </div>
+
+      {/* THÔNG TIN TỔNG QUAN */}
+      {inventorySummary && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-6 rounded-xl shadow-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-blue-100 text-sm font-medium">Tổng Nhập</p>
+                <p className="text-3xl font-bold mt-2">{inventorySummary.summary.totalNhap.toFixed(3)} Kg</p>
+              </div>
+              <div className="bg-white bg-opacity-20 p-3 rounded-lg">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-green-500 to-green-600 text-white p-6 rounded-xl shadow-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-green-100 text-sm font-medium">Tồn Kho</p>
+                <p className="text-3xl font-bold mt-2">{inventorySummary.summary.totalTon.toFixed(3)} Kg</p>
+              </div>
+              <div className="bg-white bg-opacity-20 p-3 rounded-lg">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-red-500 to-red-600 text-white p-6 rounded-xl shadow-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-red-100 text-sm font-medium">Đã Xuất</p>
+                <p className="text-3xl font-bold mt-2">{inventorySummary.summary.totalXuat.toFixed(3)} Kg</p>
+              </div>
+              <div className="bg-white bg-opacity-20 p-3 rounded-lg">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16v-2a4 4 0 00-4-4v0a4 4 0 00-4 4v2m-2 4h12a2 2 0 002-2v-4a2 2 0 00-2-2H7a2 2 0 00-2 2v4a2 2 0 002 2z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
         
-      {/* KHU VỰC BIỂU ĐỒ - KHÔNG THAY ĐỔI */}
+      {/* KHU VỰC BIỂU ĐỒ */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-        {/* Biểu đồ cột */}
+        {/* Biểu đồ cột - Cân theo giờ */}
         <div className="bg-white p-6 rounded-xl shadow">
-          
-          {/* --- KHU VỰC TIÊU ĐỀ VÀ BỘ LỌC NGÀY --- */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
             <h2 className="text-xl font-bold mb-2 sm:mb-0">
               Tổng Khối Lượng Theo Giờ
@@ -62,46 +111,103 @@ function DashboardPage() {
             </div>
           </div>
           
-          {/* Biểu đồ không đổi */}
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={hourlyWeighingData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="hour" />
               <YAxis />
-              <Tooltip formatter={(value: number) => [`${value.toFixed(1)} g`, "Khối lượng"]} />
+              <Tooltip formatter={(value: number) => [`${value.toFixed(1)} kg`, "Khối lượng"]} />
               <Legend />
-              <Bar dataKey="Tổng khối lượng" fill="#82ca9d" />
+              <Bar dataKey="Tổng khối lượng" fill="#3b82f6" />
             </BarChart>
           </ResponsiveContainer>
         </div>
 
-        {/* Biểu đồ tròn */}
+        {/* Biểu đồ tròn 2 tầng - Tồn kho */}
         <div className="bg-white p-6 rounded-xl shadow">
-          <h2 className="text-xl font-bold mb-4">Tỷ Lệ Các Loại Phôi Keo</h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={glueTypeData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={(props: { name?: string; percent?: number }) => {
-                  const name = props.name ?? '';
-                  const percent = props.percent ?? 0;
-                  return `${name} ${(percent * 100).toFixed(1)}%`;
-                }}
-                outerRadius={100}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {glueTypeData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
+          <h2 className="text-xl font-bold mb-4">Tổng Quan Kho</h2>
+          
+          {twoLevelPieData ? (
+            <>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  {/* Vòng trong - Tổng quan */}
+                  <Pie
+                    data={twoLevelPieData.innerData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={0}
+                    outerRadius={60}
+                    dataKey="value"
+                  >
+                    {twoLevelPieData.innerData.map((entry, index) => (
+                      <Cell key={`inner-${index}`} fill={entry.fill} />
+                    ))}
+                  </Pie>
+                  
+                  {/* Vòng ngoài - Chi tiết theo loại */}
+                  <Pie
+                    data={twoLevelPieData.outerData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={70}
+                    outerRadius={100}
+                    dataKey="value"
+                    label={(props: any) => {
+                      const { name, value, percent } = props;
+                      return `${name}\n${value.toFixed(1)}kg\n(${(percent * 100).toFixed(1)}%)`;
+                    }}
+                  >
+                    {twoLevelPieData.outerData.map((entry, index) => (
+                      <Cell key={`outer-${index}`} fill={entry.fill} />
+                    ))}
+                  </Pie>
+                  
+                  <Tooltip formatter={(value: number) => `${value.toFixed(2)} kg`} />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+
+              {/* Chú thích bổ sung */}
+              <div className="mt-4 p-4 bg-gray-50 rounded-lg space-y-2">
+                <div className="flex items-start gap-6">
+                  {/* Nhóm 1: Tồn */}
+                  <div className="flex items-start gap-6">
+                    <div className="w-4 h-4 rounded-full bg-green-500 mt-0.5 flex-shrink-0"></div>
+                    <p className="text-sm font-semibold text-gray-600">
+                      Tồn: {inventorySummary?.summary.totalTon.toFixed(3)}kg (
+                      {(
+                        ((inventorySummary?.summary.totalTon || 0) /
+                          ((inventorySummary?.summary.totalTon || 0) +
+                            (inventorySummary?.summary.totalXuat || 0))) *
+                        100
+                      ).toFixed(1)}
+                      %)
+                    </p>
+                  </div>
+
+                  {/* Nhóm 2: Đã xuất */}
+                  <div className="flex items-start gap-2">
+                    <div className="w-4 h-4 rounded-full bg-red-500 mt-0.5 flex-shrink-0"></div>
+                    <p className="text-sm font-semibold text-gray-600">
+                      Đã xuất: {inventorySummary?.summary.totalXuat.toFixed(3)}kg (
+                      {(
+                        ((inventorySummary?.summary.totalXuat || 0) /
+                          ((inventorySummary?.summary.totalTon || 0) +
+                            (inventorySummary?.summary.totalXuat || 0))) *
+                        100
+                      ).toFixed(1)}
+                      %)
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="flex items-center justify-center h-[300px] text-gray-400">
+              <p>Đang tải dữ liệu...</p>
+            </div>
+          )}
         </div>
 
         {/* Biểu đồ xu hướng theo thời gian */}
