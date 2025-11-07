@@ -19,7 +19,7 @@ export const getScanData = async (req: Request, res: Response) => {
       .query('SELECT OVNO, Package, MUserID, Qty AS QtyS FROM Outsole_VML_WorkS WHERE QRCode = @maCodeParam');
 
     if (workSResult.recordset.length === 0) {
-      return res.status(404).send({ message: `Mã "${maCode}" không tìm thấy trong WorkS.` });
+      return res.status(404).send({ message: `Không tìm thấy mã "${maCode}".` });
     }
     const workSRecord = workSResult.recordset[0];
     const { OVNO: ovNO, Package: packageNum, MUserID: mUserID, QtyS: qtys } = workSRecord;

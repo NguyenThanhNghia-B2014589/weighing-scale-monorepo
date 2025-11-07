@@ -42,6 +42,12 @@ export function useAdminPageLogic() {
   const [selectedName, setSelectedName] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
 
+  // --- STATE MỚI CHO DATE RANGE ---
+  const [dateRange, setDateRange] = useState(() => {
+    // Đọc từ localStorage, mặc định là '7'
+    return localStorage.getItem('historyDateRange') || '7';
+  });
+
   // Tiêu đề bảng
   // Cập nhật tiêu đề bảng để khớp với hình ảnh (9 cột)
   const tableHeaders = [
@@ -69,8 +75,13 @@ export function useAdminPageLogic() {
 
   // --- LOGIC LẤY DỮ LIỆU TỪ API ---
   const fetchData = useCallback(async () => {
+    setIsPageLoading(true);
     try {
-      const response = await apiClient.get<GroupedHistoryData[]>('/history');
+      const response = await apiClient.get<GroupedHistoryData[]>('/history', {
+        params: {
+          days: dateRange // <-- Gửi state dateRange lên API
+        }
+      });
       // Sắp xếp các bản ghi trong mỗi nhóm theo thời gian mới nhất
       const sortedData = response.data.map(group => ({
         ...group,
@@ -82,7 +93,22 @@ export function useAdminPageLogic() {
     } finally {
       setIsPageLoading(false);
     }
-  }, []);
+  }, [dateRange]);
+
+  const handleSetDateRange = (days: string) => {
+    setDateRange(days);
+    localStorage.setItem('historyDateRange', days);
+  };
+
+  // (Giữ lại các hàm setter cho selectedName, selectedDate nếu bạn đã làm)
+  const handleSetName = (name: string) => {
+    setSelectedName(name);
+    localStorage.setItem('historySelectedName', name);
+  };
+  const handleSetDate = (date: string) => {
+    setSelectedDate(date);
+    localStorage.setItem('historySelectedDate', date);
+  };
 
   useEffect(() => {
     fetchData();
@@ -174,15 +200,17 @@ export function useAdminPageLogic() {
     cache: cache.current,
     uniqueNames,
     selectedName,
-    setSelectedName,
     selectedDate,
-    setSelectedDate,
     formatLastRefresh,
     lastRefresh,
     isAutoRefresh,
     setIsAutoRefresh,
     refreshData,
-    isDateMatch
+    isDateMatch,
+    setSelectedName: handleSetName,
+    setSelectedDate: handleSetDate,
+    dateRange,
+    setDateRange: handleSetDateRange,
   };
 }
 export type AdminPageLogicReturn = ReturnType<typeof useAdminPageLogic>;

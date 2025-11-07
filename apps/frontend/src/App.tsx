@@ -30,6 +30,8 @@ function App() {
         setIsAutoRefresh={historyLogic.setIsAutoRefresh}
         refreshData={historyLogic.refreshData}
         formatLastRefresh={historyLogic.formatLastRefresh}
+        dateRange={historyLogic.dateRange} 
+        setDateRange={historyLogic.setDateRange} 
       />
 
       <main className="flex-grow pt-[70px]">

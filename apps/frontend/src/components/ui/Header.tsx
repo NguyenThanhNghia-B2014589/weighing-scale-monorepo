@@ -34,7 +34,7 @@ function Header() {
     <header className="fixed top-0 left-0 w-full h-[70px] bg-[#064469] z-50 flex items-center justify-between px-6 shadow-lg">
       <Link to="/WeighingStationNew" className="flex items-center gap-4">
         <img src={logoIcon} alt="Logo" className="h-[35px]" />
-        <h1 className="text-white text-2xl font-bold tracking-wide">LƯU TRÌNH CÂN KEO XƯỞNG ĐẾ</h1>
+        <h1 className="text-white text-2xl font-bold tracking-wide">LƯU TRÌNH CÂN CAO SU XƯỞNG ĐẾ</h1>
       </Link>
 
       {user && (

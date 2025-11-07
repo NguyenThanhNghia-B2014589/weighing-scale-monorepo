@@ -9,11 +9,17 @@ interface SettingsModalProps {
   setIsAutoRefresh: (enabled: boolean) => void;
   refreshData: () => void;
   formatLastRefresh: () => string;
+  dateRange: string;
+  setDateRange: (days: string) => void;
 }
 
 // Component nhận props
 function SettingsModal({
   refreshData,
+  isAutoRefresh, 
+  setIsAutoRefresh, 
+  dateRange, 
+  setDateRange,
 }: SettingsModalProps) {
   const { showSettingsModal, closeSettingsModal } = useSettings();
 
@@ -49,10 +55,40 @@ function SettingsModal({
 
             {/* Thêm các cài đặt khác trong tương lai */}
             <div className=" ">
-              <h4 className="text-sm font-medium text-gray-700 mb-3">Cài đặt khác</h4>
-              <div className="text-sm text-gray-500">
-                Các tùy chọn cài đặt khác sẽ được thêm vào đây...
+              <label htmlFor="date-range" className="block text-sm font-medium text-gray-700 mb-2">
+                Phạm vi lịch sử
+              </label>
+              <select
+                id="date-range"
+                value={dateRange}
+                onChange={(e) => setDateRange(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+              >
+                <option value="7">7 ngày qua</option>
+                <option value="15">15 ngày qua</option>
+                <option value="30">30 ngày qua</option>
+                <option value="90">90 ngày qua</option>
+                <option value="all">Tất cả lịch sử</option>
+                <option value="1">Test</option>
+              </select>
+            </div>
+
+            {/* --- 3. (Tùy chọn) THÊM TOGGLE TỰ ĐỘNG LÀM MỚI --- */}
+            <div className="flex justify-between items-center">
+              <div>
+                <h4 className="text-sm font-medium text-gray-700">Tự động làm mới</h4>
+                <p className="text-sm text-gray-500">Tự động tải lại dữ liệu sau mỗi 5 phút.</p>
               </div>
+              {/* (Bạn cần tạo component ToggleSwitch hoặc dùng checkbox) */}
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  checked={isAutoRefresh}
+                  onChange={(e) => setIsAutoRefresh(e.target.checked)}
+                  className="sr-only peer" 
+                />
+                <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-300 peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+              </label>
             </div>
           </div>
 

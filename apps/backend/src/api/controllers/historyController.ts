@@ -2,14 +2,36 @@
 // src/api/controllers/historyController.ts
 import { Request, Response } from 'express';
 import { getPool } from '../../config/db';
+import sql from 'mssql';
 
 export const getHistory = async (req: Request, res: Response) => {
   try {
-    const pool = getPool();
+    // 2. Lấy 'days' từ query, mặc định là '7'
+    const { days = '7' } = req.query;
 
-    // 1. Lấy TẤT CẢ bản ghi lịch sử (đã join)
-    // (Đây là query cũ của bạn, rất tốt)
-    const historyResult = await pool.request().query(`
+  const pool = getPool();
+    const request = pool.request(); // Tạo request
+
+  // 3. Xây dựng mệnh đề WHERE động
+    const whereClauses = [
+      "H.TimeWeigh IS NOT NULL"
+    ];
+
+    // Kiểm tra nếu 'days' không phải là 'all'
+    if (days !== 'all') {
+      const numDays = parseInt(days as string, 10);
+      
+      // Chỉ thêm điều kiện nếu nó là một số hợp lệ
+      if (!isNaN(numDays) && numDays > 0) {
+        // Thêm mệnh đề SQL
+        whereClauses.push("H.TimeWeigh >= DATEADD(day, -@daysParam, GETDATE())");
+        // Thêm tham số (parameter) để chống SQL Injection
+        request.input('daysParam', sql.Int, numDays);
+      }
+    }
+
+    // 4. Lấy TẤT CẢ bản ghi lịch sử (với WHERE động)
+    const historyQuery = `
       SELECT 
         H.QRCode AS maCode, H.TimeWeigh AS mixTime, H.KhoiLuongCan AS realQty, H.loai,
         S.OVNO AS ovNO, S.Package AS package, S.MUserID, S.Qty AS qtys,
@@ -21,12 +43,15 @@ export const getHistory = async (req: Request, res: Response) => {
       LEFT JOIN Outsole_VML_WorkS AS S ON H.QRCode = S.QRCode
       LEFT JOIN Outsole_VML_Work AS W ON S.OVNO = W.OVNO
       LEFT JOIN Outsole_VML_Persion AS P ON S.MUserID = P.MUserID
-      WHERE H.TimeWeigh IS NOT NULL
+      WHERE 
+        ${whereClauses.join(' AND ')}
       ORDER BY 
         S.OVNO, H.TimeWeigh DESC 
-    `);
-
-    const records = historyResult.recordset;
+    `;
+    
+    // 5. Thực thi query
+  const historyResult = await request.query(historyQuery);
+  const records = historyResult.recordset;
 
     // --- 2. LẤY DỮ LIỆU ĐẾM PACKAGE (Tất cả OVNO) ---
     // (Query này chạy 1 lần lấy hết)
