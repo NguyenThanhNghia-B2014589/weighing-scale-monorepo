@@ -4,6 +4,7 @@ import sql from 'mssql';
 import { getPool } from '../../config/db';
 
 export const completeWeighing = async (req: Request, res: Response) => {
+  console.log('📦 [POST /api/complete] Dữ liệu nhận được:', req.body);
   // 1. Lấy dữ liệu (Giữ nguyên)
   const { maCode, khoiLuongCan, thoiGianCan, loai } = req.body;
   const mixTime = new Date(thoiGianCan);

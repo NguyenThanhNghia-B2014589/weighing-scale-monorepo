@@ -35,7 +35,7 @@ export const getHistory = async (req: Request, res: Response) => {
     // 3. Lấy TẤT CẢ bản ghi lịch sử (với WHERE động)
     const historyQuery = `
       SELECT 
-        H.QRCode AS maCode, H.TimeWeigh AS mixTime, H.KhoiLuongCan AS realQty, H.loai,
+        H.QRCode AS maCode, CONVERT(VARCHAR, H.TimeWeigh, 120) AS mixTime, H.KhoiLuongCan AS realQty, H.loai,
         S.OVNO AS ovNO, S.Package AS package, S.MUserID, S.Qty AS qtys,
         W.FormulaF1 AS tenPhoiKeo, W.Machine_NO AS soMay, W.Qty AS totalTargetQty, W.Memo,
         P.UserName AS nguoiThaoTac,

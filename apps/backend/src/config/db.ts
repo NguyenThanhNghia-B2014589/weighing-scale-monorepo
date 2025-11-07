@@ -23,6 +23,7 @@ export const dbConfig: sql.config = {
   options: {
     trustServerCertificate: true, // Usually needed for local/dev SQL Server
     // encrypt: true, // Use true for production with Azure SQL or trusted certificates
+    useUTC: false
   },
 };
 
