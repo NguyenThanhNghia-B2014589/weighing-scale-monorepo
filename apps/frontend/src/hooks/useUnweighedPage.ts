@@ -4,58 +4,99 @@ import { useAutoRefresh } from "./useAutoRefresh";
 import apiClient from "../api/apiClient";
 //import { useSettings } from "./useSettings"; // Dùng chung context
 
-// 1. Định nghĩa kiểu dữ liệu trả về từ API mới
+// Định nghĩa kiểu dữ liệu trả về từ API mới
 export interface UnweighedSummary {
- ovNO: string;
- memo: string | null;
- totalTargetQty: number;
+  ovNO: string;
+  memo: string | null;
+  totalTargetQty: number;
   totalPackages: number;
- chuaCanNhap: number;
- chuaCanXuat: number;
+  chuaCanNhap: number;
+  chuaCanXuat: number;
+}
+
+export interface UnweighedDetail {
+  maCode: string;
+  khoiLuongMe: number;
+  soLo: number;
+  trangThai: 'chua nhap' | 'chua xuat';
 }
 
 export function useUnweighedPage() {
- // Lấy state cài đặt chung
+  // Lấy state cài đặt chung
   //const { isAutoRefresh, setIsAutoRefresh } = useSettings();
 
   // State của trang
- const [data, setData] = useState<UnweighedSummary[]>([]);
- const [isLoading, setIsLoading] = useState(true);
+  const [data, setData] = useState<UnweighedSummary[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
- // 2. Logic fetch
- const fetchData = useCallback(async () => {
-  setIsLoading(true);
-  try {
-   const response = await apiClient.get<UnweighedSummary[]>('/unweighed/summary');
-   setData(response.data);
-  } catch (error) {
-   console.error("Lỗi khi lấy dữ liệu chưa cân:", error);
-   setData([]);
-  } finally {
-   setIsLoading(false);
-  }
- }, []);
+  const [selectedOvno, setSelectedOvno] = useState<string | null>(null);
+  const [details, setDetails] = useState<UnweighedDetail[]>([]);
+  const [isDetailsLoading, setIsDetailsLoading] = useState(false);
 
- // 3. Lấy dữ liệu lần đầu
- useEffect(() => {
-  fetchData();
- }, [fetchData]);
+  // Logic fetch
+  const fetchData = useCallback(async () => {
+    setIsLoading(true);
+    try {
+    const response = await apiClient.get<UnweighedSummary[]>('/unweighed/summary');
+    setData(response.data);
+    } catch (error) {
+    console.error("Lỗi khi lấy dữ liệu chưa cân:", error);
+    setData([]);
+    } finally {
+    setIsLoading(false);
+    }
+  }, []);
 
- // 4. Tự động làm mới
- const { 
-  lastRefresh, 
-  formatLastRefresh,
-  refreshData,
- } = useAutoRefresh(fetchData, { 
-    //isAutoRefresh,
-    //setIsAutoRefresh 
+  // Lấy dữ liệu lần đầu
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // Tự động làm mới
+  const { 
+    lastRefresh, 
+    formatLastRefresh,
+    refreshData,
+  } = useAutoRefresh(fetchData, { 
+      //isAutoRefresh,
+      //setIsAutoRefresh 
   });
 
- return {
-  data,
-  isLoading,
-  refreshData,
-  lastRefresh,
-  formatLastRefresh
- };
+  // THÊM HÀM MỚI ĐỂ XỬ LÝ CLICK
+  const handleSelectOvno = useCallback(async (ovno: string) => {
+    // Nếu click vào OVNO đang mở, hãy đóng nó lại
+    if (selectedOvno === ovno) {
+      setSelectedOvno(null);
+      setDetails([]);
+      return;
+    }
+
+    // Nếu click vào OVNO mới
+    setSelectedOvno(ovno);
+    setIsDetailsLoading(true);
+    setDetails([]); // Xóa chi tiết cũ
+
+    try {
+      const response = await apiClient.get<UnweighedDetail[]>(`/unweighed/details/${ovno}`);
+      setDetails(response.data);
+    } catch (error) {
+      console.error("Lỗi khi lấy chi tiết mã chưa cân:", error);
+      setDetails([]); // Đặt lại thành mảng rỗng nếu lỗi
+    } finally {
+      setIsDetailsLoading(false);
+    }
+  }, [selectedOvno]);
+
+  return {
+    data,
+    isLoading,
+    refreshData,
+    lastRefresh,
+    formatLastRefresh,
+
+    selectedOvno,
+    details,
+    isDetailsLoading,
+    handleSelectOvno,
+  };
 }
