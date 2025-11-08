@@ -4,7 +4,7 @@
 import React from 'react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, 
-  PieChart, Pie, Cell, AreaChart, Area 
+  PieChart, Pie, Cell, AreaChart, Area, LabelList 
 } from 'recharts';
 import { useDashboard } from '../../hooks/useDashboard';
 
@@ -14,13 +14,35 @@ function DashboardPage() {
     selectedDate,
     inventorySummary,
     twoLevelPieData,
-    hourlyWeighingData,
+    hourlyShiftData,
     weighingTrendData,
     // Refresh functionality
     lastRefresh,
     refreshData,
     formatLastRefresh,
   } = useDashboard();
+
+  const safePercent = (value: number | undefined, total: number | undefined) => {
+    const val = value || 0;
+    const tot = total || 0;
+    if (tot === 0) return "0.0"; // Tránh chia cho 0
+    return ((val / tot) * 100).toFixed(1);
+  };
+  
+  // Tính tổng
+  const totalOverview = (inventorySummary?.summary.totalTon || 0) + (inventorySummary?.summary.totalXuat || 0);
+
+  // 2. (Tùy chọn) Hàm render label
+  const renderBarLabel = (props: any) => {
+    const { x, y, width, value } = props;
+    if (value <= 0) return null; // Không hiển thị label nếu = 0
+
+    return (
+      <text x={x + width / 2} y={y} fill="#666" textAnchor="middle" dy={-6} fontSize={12}>
+        {value.toFixed(2)}
+      </text>
+    );
+  };
   
   return (
     <div className="px-8 py-4">
@@ -55,7 +77,7 @@ function DashboardPage() {
               </div>
               <div className="bg-white bg-opacity-20 p-3 rounded-lg">
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v14m0 0l4-4m-4 4l-4-4m-6 8h20"/>
                 </svg>
               </div>
             </div>
@@ -83,7 +105,7 @@ function DashboardPage() {
               </div>
               <div className="bg-white bg-opacity-20 p-3 rounded-lg">
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16v-2a4 4 0 00-4-4v0a4 4 0 00-4 4v2m-2 4h12a2 2 0 002-2v-4a2 2 0 00-2-2H7a2 2 0 00-2 2v4a2 2 0 002 2z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 20V6m0 0l4 4m-4-4l-4 4M6 22h12" />
                 </svg>
               </div>
             </div>
@@ -112,13 +134,22 @@ function DashboardPage() {
           </div>
           
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={hourlyWeighingData}>
+            <BarChart data={hourlyShiftData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="hour" />
+              <XAxis dataKey="Ca" /> {/* <-- Sửa dataKey */}
               <YAxis />
               <Tooltip formatter={(value: number) => [`${value.toFixed(1)} kg`, "Khối lượng"]} />
               <Legend />
-              <Bar dataKey="Tổng khối lượng" fill="#3b82f6" />
+              
+              {/* Cột Nhập (Màu xanh lá) */}
+              <Bar dataKey="Khối lượng cân nhập" fill="#10b981">
+                <LabelList dataKey="Khối lượng cân nhập" content={renderBarLabel} />
+              </Bar>
+              
+              {/* Cột Xuất (Màu đỏ) */}
+              <Bar dataKey="Khối lượng cân xuất" fill="#ef4444">
+                <LabelList dataKey="Khối lượng cân xuất" content={renderBarLabel} />
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -171,37 +202,29 @@ function DashboardPage() {
               {/* Chú thích bổ sung */}
               <div className="mt-4 p-4 bg-gray-50 rounded-lg space-y-2">
                 <div className="flex items-start gap-6">
-                  {/* Nhóm 1: Tồn */}
-                  <div className="flex items-start gap-6">
-                    <div className="w-4 h-4 rounded-full bg-green-500 mt-0.5 flex-shrink-0"></div>
-                    <p className="text-sm font-semibold text-gray-600">
-                      Tồn: {inventorySummary?.summary.totalTon.toFixed(3)}kg (
-                      {(
-                        ((inventorySummary?.summary.totalTon || 0) /
-                          ((inventorySummary?.summary.totalTon || 0) +
-                            (inventorySummary?.summary.totalXuat || 0))) *
-                        100
-                      ).toFixed(1)}
-                      %)
-                    </p>
-                  </div>
+                {/* Nhóm 1: Tồn */}
+                <div className="flex items-start gap-2"> {/* Sửa gap-6 thành gap-2 */}
+                  <div className="w-4 h-4 rounded-full bg-green-500 mt-0.5 flex-shrink-0" style={{backgroundColor: '#10b981'}}></div>
+                  <p className="text-sm font-semibold text-gray-600">
+                  Tồn: {inventorySummary?.summary.totalTon.toFixed(3)}kg (
+                                {/* Dùng hàm tính an toàn */}
+                  {safePercent(inventorySummary?.summary.totalTon, totalOverview)}
+                  %)
+                  </p>
+                </div>
 
-                  {/* Nhóm 2: Đã xuất */}
-                  <div className="flex items-start gap-2">
-                    <div className="w-4 h-4 rounded-full bg-red-500 mt-0.5 flex-shrink-0"></div>
-                    <p className="text-sm font-semibold text-gray-600">
-                      Đã xuất: {inventorySummary?.summary.totalXuat.toFixed(3)}kg (
-                      {(
-                        ((inventorySummary?.summary.totalXuat || 0) /
-                          ((inventorySummary?.summary.totalTon || 0) +
-                            (inventorySummary?.summary.totalXuat || 0))) *
-                        100
-                      ).toFixed(1)}
-                      %)
-                    </p>
-                  </div>
+                {/* Nhóm 2: Đã xuất */}
+                <div className="flex items-start gap-2">
+                    <div className="w-4 h-4 rounded-full bg-red-500 mt-0.5 flex-shrink-0" style={{backgroundColor: '#ef4444'}}></div>
+                  <p className="text-sm font-semibold text-gray-600">
+                  Đã xuất: {inventorySummary?.summary.totalXuat.toFixed(3)}kg (
+                                {/* Dùng hàm tính an toàn */}
+                  {safePercent(inventorySummary?.summary.totalXuat, totalOverview)}
+                  %)
+                  </p>
                 </div>
               </div>
+            </div>
             </>
           ) : (
             <div className="flex items-center justify-center h-[300px] text-gray-400">

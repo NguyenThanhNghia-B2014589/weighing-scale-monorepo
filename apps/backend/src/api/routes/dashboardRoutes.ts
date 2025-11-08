@@ -2,7 +2,7 @@
 import express from 'express';
 import { 
   getInventorySummary, 
-  getHourlyWeighing, 
+  getShiftWeighing, 
   getWeighingTrend 
 } from '../controllers/dashboardController';
 
@@ -12,7 +12,7 @@ const router = express.Router();
 router.get('/dashboard/inventory-summary', getInventorySummary);
 
 // GET /api/dashboard/hourly-weighing - Lấy dữ liệu cân theo giờ
-router.get('/dashboard/hourly-weighing', getHourlyWeighing);
+router.get('/dashboard/shift-weighing', getShiftWeighing);
 
 // GET /api/dashboard/weighing-trend - Lấy xu hướng cân theo tháng
 router.get('/dashboard/weighing-trend', getWeighingTrend);

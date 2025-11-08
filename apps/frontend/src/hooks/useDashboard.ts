@@ -19,9 +19,10 @@ interface InventorySummary {
   }>;
 }
 
-interface HourlyWeighingData {
-  hour: string;
-  totalWeight: number;
+interface ShiftWeighingData {
+ Ca: string;
+ KhoiLuongNhap: number;
+ KhoiLuongXuat: number;
 }
 
 interface WeighingTrendData {
@@ -39,7 +40,7 @@ function getTodayString(): string {
 
 export function useDashboard() {
   const [inventorySummary, setInventorySummary] = useState<InventorySummary | null>(null);
-  const [hourlyData, setHourlyData] = useState<HourlyWeighingData[]>([]);
+  const [shiftData, setShiftData] = useState<ShiftWeighingData[]>([]);
   const [trendData, setTrendData] = useState<WeighingTrendData[]>([]);
   const [selectedDate, setSelectedDate] = useState(getTodayString());
 
@@ -54,14 +55,15 @@ export function useDashboard() {
   }, []);
 
   // Callback để làm mới dữ liệu cân theo giờ (biểu đồ cột)
-  const fetchHourlyWeighing = useCallback(async (date: string) => {
+  const fetchShiftWeighing = useCallback(async (date: string) => {
     try {
-      const response = await apiClient.get<HourlyWeighingData[]>('/dashboard/hourly-weighing', {
-        params: { date }
-      });
-      setHourlyData(response.data);
+      // API endpoint giữ nguyên, nhưng kiểu trả về đã thay đổi
+      const response = await apiClient.get<ShiftWeighingData[]>('/dashboard/shift-weighing', {
+      params: { date }
+    });
+    setShiftData(response.data);
     } catch (error) {
-      console.error("Lỗi khi lấy dữ liệu cân theo giờ:", error);
+      console.error("Lỗi khi lấy dữ liệu cân theo ca:", error);
     }
   }, []);
 
@@ -81,10 +83,10 @@ export function useDashboard() {
   const dataRefreshCallback = useCallback(async () => {
     await Promise.all([
       fetchInventorySummary(),
-      fetchHourlyWeighing(selectedDate),
+      fetchShiftWeighing(selectedDate),
       fetchWeighingTrend()
     ]);
-  }, [fetchInventorySummary, fetchHourlyWeighing, fetchWeighingTrend, selectedDate]);
+  }, [fetchInventorySummary, fetchShiftWeighing, fetchWeighingTrend, selectedDate]);
 
   // Lấy dữ liệu lần đầu
   useEffect(() => {
@@ -93,8 +95,8 @@ export function useDashboard() {
 
   // Cập nhật dữ liệu cân theo giờ khi thay đổi ngày
   useEffect(() => {
-    fetchHourlyWeighing(selectedDate);
-  }, [selectedDate, fetchHourlyWeighing]);
+    fetchShiftWeighing(selectedDate);
+  }, [selectedDate, fetchShiftWeighing]);
 
   // Sử dụng hook useAutoRefresh
   const {
@@ -131,12 +133,13 @@ export function useDashboard() {
   }, [inventorySummary]);
 
   // Dữ liệu cho biểu đồ cột
-  const hourlyWeighingData = useMemo(() => {
-    return hourlyData.map(item => ({
-      hour: item.hour,
-      'Tổng khối lượng': item.totalWeight
+  const hourlyShiftData = useMemo(() => {
+    return shiftData.map(item => ({
+      Ca: item.Ca,
+      'Khối lượng cân nhập': item.KhoiLuongNhap,
+      'Khối lượng cân xuất': item.KhoiLuongXuat
     }));
-  }, [hourlyData]);
+  }, [shiftData]);
 
   // Dữ liệu cho biểu đồ xu hướng
   const weighingTrendData = useMemo(() => {
@@ -151,7 +154,7 @@ export function useDashboard() {
     // Data
     inventorySummary,
     twoLevelPieData,
-    hourlyWeighingData,
+    hourlyShiftData,
     weighingTrendData,
    
     
