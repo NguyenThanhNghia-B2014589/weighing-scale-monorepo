@@ -127,7 +127,7 @@ export function useDashboard() {
       { name: 'Tồn kho', value: summary.totalTon, fill: '#10b981' },
       { name: 'Đã xuất', value: summary.totalXuat, fill: '#ef4444' }
     ];
-    const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658'];
+    const COLORS = ['#038539FF', '#3944E0FF', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658'];
 
     // Vòng ngoài: Chi tiết theo loại phôi keo (chỉ hiển thị tồn)
     const outerData = byGlueType.map((item, index) => ({

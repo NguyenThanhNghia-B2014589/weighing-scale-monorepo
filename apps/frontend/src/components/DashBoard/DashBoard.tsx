@@ -148,7 +148,7 @@ function DashboardPage() {
               <Legend />
               
               {/* Cột Nhập (Màu xanh lá) */}
-              <Bar dataKey="Khối lượng cân nhập" fill="#10b981">
+              <Bar dataKey="Khối lượng cân nhập" fill="#3b82f6">
                 <LabelList dataKey="Khối lượng cân nhập" content={renderBarLabel} />
               </Bar>
               
@@ -269,8 +269,8 @@ function DashboardPage() {
             <AreaChart data={weighingTrendData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorNhap" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#82ca9d" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="#82ca9d" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="colorXuat" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8} />
@@ -287,7 +287,7 @@ function DashboardPage() {
               <Area 
                 type="monotone" 
                 dataKey="Tổng nhập (kg)" 
-                stroke="#82ca9d" 
+                stroke="#3b82f6" 
                 fillOpacity={1} 
                 fill="url(#colorNhap)" 
                 name="Tổng nhập (kg)"

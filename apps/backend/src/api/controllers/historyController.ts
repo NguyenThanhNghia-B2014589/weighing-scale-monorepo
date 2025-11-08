@@ -110,6 +110,25 @@ export const getHistory = async (req: Request, res: Response) => {
       return group;
     });
 
+    // *** THÊM BƯỚC SẮP XẾP MỚI ***
+    // Sắp xếp mảng các nhóm dựa trên thời gian cân gần nhất.
+    // Vì SQL đã sắp xếp H.TimeWeigh DESC,
+    // bản ghi đầu tiên (index 0) trong 'records' của mỗi nhóm chính là bản ghi gần nhất.
+    responseArray.sort((a, b) => {
+      // Lấy thời gian gần nhất của nhóm A (an toàn nếu mảng rỗng)
+      const timeA = a.records.length > 0 
+        ? new Date(a.records[0].mixTime).getTime() 
+        : 0;
+        
+      // Lấy thời gian gần nhất của nhóm B
+      const timeB = b.records.length > 0 
+        ? new Date(b.records[0].mixTime).getTime() 
+        : 0;
+
+      // Sắp xếp giảm dần (thời gian mới nhất lên đầu)
+      return timeB - timeA;
+    });
+
     res.json(responseArray);
 
   } catch (err: unknown) {

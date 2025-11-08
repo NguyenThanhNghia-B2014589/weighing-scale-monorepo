@@ -12,6 +12,7 @@ import authRoutes from './api/routes/authRoutes';
 import syncRoutes from './api/routes/syncRoutes';
 import pingRoutes from './api/routes/pingRoutes';
 import dashboardRoutes from './api/routes/dashboardRoutes';
+import unweighedRoutes from './api/routes/unweighedRoutes';
 
 
 async function startServer() {
@@ -56,6 +57,7 @@ async function startServer() {
   app.use('/api', syncRoutes);
   app.use('/api', pingRoutes);
   app.use('/api', dashboardRoutes);
+  app.use('/api', unweighedRoutes);
 
   // Basic root route (optional)
   app.get('/', (req, res) => {

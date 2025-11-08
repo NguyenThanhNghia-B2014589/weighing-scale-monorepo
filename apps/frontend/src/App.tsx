@@ -15,7 +15,7 @@ import AdminProtectedRoute from './components/auth/AdminProtectedRoute';
 import NotFoundPage from './components/404/NotFoundPage';
 import SettingsModal from './components/ui/SettingsModal/SettingsModal'; // <-- path sửa
 import { useAdminPageLogic } from './hooks/useHistoryPage';
-
+import UnweighedPage from './components/UnweighedPage/UnweighedPage';
 
 function App() {
   const historyLogic = useAdminPageLogic();
@@ -75,6 +75,15 @@ function App() {
               </AdminProtectedRoute>
             }
           />
+
+          <Route
+      path="/unweighed"
+      element={
+       <AdminProtectedRoute>
+        <UnweighedPage />
+       </AdminProtectedRoute>
+      }
+     />
 
           {/* Default */}
           <Route path="/" element={<Navigate to="/WeighingStationNew" replace />} />

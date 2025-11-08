@@ -11,6 +11,7 @@ import logoutIcon from '../../assets/logout.png';
 import homeIcon from '../../assets/home.svg';
 import gridPenIcon from '../../assets/grid_pen.svg';
 import controlPanelIcon from '../../assets/control_panel.svg';
+import unweigh from '../../assets/document-gear.svg'
 
 function Header() {
   const {
@@ -56,6 +57,11 @@ function Header() {
                 <NavLink to="/history" title="Lịch sử cân">
                   <span className="relative z-10">
                     <img src={gridPenIcon} alt="Lịch sử cân" className="h-6 w-6 brightness-0 invert" />
+                  </span>
+                </NavLink>
+                <NavLink to="/unweighed" title="Quản Lý Phiên">
+                  <span className="relative z-10">
+                    <img src={unweigh} alt="Quản Lý Phiên" className="h-6 w-6 brightness-0 invert" />
                   </span>
                 </NavLink>
               </>
