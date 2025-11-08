@@ -20,7 +20,13 @@ function DashboardPage() {
     lastRefresh,
     refreshData,
     formatLastRefresh,
+    selectedYear, // 1. Lấy selectedYear
+    setSelectedYear, // 1. Lấy setSelectedYear
   } = useDashboard();
+
+  //Tạo danh sách năm (ví dụ: từ 5 năm trước đến 1 năm sau)
+  const currentYear = new Date().getFullYear();
+  const yearOptions = Array.from({ length: 7 }, (_, i) => (currentYear - 3) + i);
 
   const safePercent = (value: number | undefined, total: number | undefined) => {
     const val = value || 0;
@@ -120,7 +126,7 @@ function DashboardPage() {
         <div className="bg-white p-6 rounded-xl shadow">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
             <h2 className="text-xl font-bold mb-2 sm:mb-0">
-              Tổng Khối Lượng Theo Giờ
+              Tổng Khối Lượng Theo Ca
             </h2>
             <div className="relative">
               <input
@@ -234,22 +240,66 @@ function DashboardPage() {
         </div>
 
         {/* Biểu đồ xu hướng theo thời gian */}
-        <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow">
-          <h2 className="text-xl font-bold mb-4">Xu Hướng Cân Theo Thời gian</h2>
+       <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow mt-6 relative">
+          <div className="flex items-center mb-4"> 
+            <h2 className="text-xl font-bold flex-shrink-0">
+              Tổng Khối Lượng Cân (Kg) Theo Tháng Trong Năm
+            </h2>
+
+          </div>
+
+          {/* dropdown chọn năm  */}
+          <div className="absolute top-6 right-6 z-10">
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
+              // Style nhỏ gọn giống như trong hình
+              className="bg-white border border-gray-500 text-gray-700 text-sm font-bold rounded-md focus:ring-sky-500 focus:border-sky-500 block px-3 py-1 appearance-none cursor-pointer"
+            >
+              {yearOptions.map(year => (
+                <option key={year} value={year.toString()}>
+                  Năm {year}
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          {/* BIỂU ĐỒ AREA */}
           <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={weighingTrendData}>
+            <AreaChart data={weighingTrendData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
               <defs>
-                <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#8884d8" stopOpacity={0}/>
+                <linearGradient id="colorNhap" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#82ca9d" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#82ca9d" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="colorXuat" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis allowDecimals={false} />
-              <Tooltip />
-              <Legend />
-              <Area type="monotone" dataKey="Số lần cân" stroke="#8884d8" fillOpacity={1} fill="url(#colorUv)" />
+              <XAxis dataKey="name" />
+              <YAxis domain={[0, 'auto']} /> 
+              <Tooltip formatter={(value: number) => [`${value.toFixed(1)} kg`, "Khối lượng"]} />
+              <Legend verticalAlign="top" height={36} />
+              
+              {/* dataKey VÀ NAME */}
+              <Area 
+                type="monotone" 
+                dataKey="Tổng nhập (kg)" 
+                stroke="#82ca9d" 
+                fillOpacity={1} 
+                fill="url(#colorNhap)" 
+                name="Tổng nhập (kg)"
+              />
+              <Area 
+                type="monotone" 
+                dataKey="Tổng xuất (kg)" 
+                stroke="#ef4444" 
+                fillOpacity={1} 
+                fill="url(#colorXuat)"
+                name="Tổng xuất (kg)"
+              />
             </AreaChart>
           </ResponsiveContainer>
         </div>  

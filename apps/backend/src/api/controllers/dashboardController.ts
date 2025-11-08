@@ -189,38 +189,48 @@ export const getShiftWeighing = async (req: Request, res: Response) => {
  */
 export const getWeighingTrend = async (req: Request, res: Response) => {
   try {
-    const { months = '6' } = req.query;
-    const numMonths = parseInt(months as string, 10);
-
+    // 1. Lấy 'year' từ query, mặc định là năm hiện tại
+    const { year } = req.query;
+    const currentYear = new Date().getFullYear();
+    const selectedYear = parseInt(year as string, 10) || currentYear;
+      
     const pool = getPool();
 
     const trendQuery = `
-      SELECT 
-        FORMAT(H.TimeWeigh, 'MM/yyyy') AS MonthYear,
-        COUNT(*) AS WeighingCount
-      FROM 
-        Outsole_VML_History AS H
-      WHERE 
-        H.loai = 'nhap'
-        AND H.TimeWeigh >= DATEADD(MONTH, -@monthsParam, GETDATE())
-      GROUP BY 
-        FORMAT(H.TimeWeigh, 'MM/yyyy'),
-        YEAR(H.TimeWeigh),
-        MONTH(H.TimeWeigh)
-      ORDER BY 
-        YEAR(H.TimeWeigh), MONTH(H.TimeWeigh)
+      SELECT
+        DATEPART(MONTH, TimeWeigh) AS Thang,
+        ISNULL(SUM(CASE WHEN loai = 'nhap' THEN KhoiLuongCan ELSE 0 END), 0) AS TongKhoiLuongNhap,
+        ISNULL(SUM(CASE WHEN loai = 'xuat' THEN KhoiLuongCan ELSE 0 END), 0) AS TongKhoiLuongXuat
+      FROM
+        Outsole_VML_History
+      WHERE
+        DATEPART(YEAR, TimeWeigh) = @selectedYearParam  -- 2. Dùng tham số năm
+      GROUP BY
+        DATEPART(MONTH, TimeWeigh)
+      ORDER BY
+        Thang
     `;
 
     const result = await pool.request()
-      .input('monthsParam', sql.Int, numMonths)
-      .query(trendQuery);
+    .input('selectedYearParam', sql.Int, selectedYear) // 3. Thêm tham số
+    .query(trendQuery);
 
-    const trendData = result.recordset.map(item => ({
-      date: item.MonthYear,
-      weighingCount: item.WeighingCount
-    }));
+    // Tạo mảng kết quả cuối cùng với 12 tháng
+    const monthlyDataMap = new Map<number, any>();
+    result.recordset.forEach(r => monthlyDataMap.set(r.Thang, r));
 
-    res.json(trendData);
+    const finalMonthlyData = [];
+    for (let i = 1; i <= 12; i++) {
+      const data = monthlyDataMap.get(i);
+      
+      finalMonthlyData.push({
+        Thang: i,
+        TongKhoiLuongNhap: data ? parseFloat(data.TongKhoiLuongNhap.toFixed(2)) : 0,
+        TongKhoiLuongXuat: data ? parseFloat(data.TongKhoiLuongXuat.toFixed(2)) : 0,
+      });
+    }
+
+    res.json(finalMonthlyData);
 
   } catch (err: unknown) {
     console.error('Lỗi khi lấy xu hướng cân:');

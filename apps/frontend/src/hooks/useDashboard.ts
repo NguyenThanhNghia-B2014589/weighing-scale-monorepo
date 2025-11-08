@@ -26,8 +26,14 @@ interface ShiftWeighingData {
 }
 
 interface WeighingTrendData {
-  date: string;
-  weighingCount: number;
+  Thang: number;
+  TongKhoiLuongNhap: number;
+  TongKhoiLuongXuat: number;
+}
+
+// Lấy năm hiện tại
+function getCurrentYear(): string {
+  return new Date().getFullYear().toString();
 }
 
 function getTodayString(): string {
@@ -43,6 +49,7 @@ export function useDashboard() {
   const [shiftData, setShiftData] = useState<ShiftWeighingData[]>([]);
   const [trendData, setTrendData] = useState<WeighingTrendData[]>([]);
   const [selectedDate, setSelectedDate] = useState(getTodayString());
+  const [selectedYear, setSelectedYear] = useState(getCurrentYear());
 
   // Callback để làm mới dữ liệu tồn kho (biểu đồ tròn)
   const fetchInventorySummary = useCallback(async () => {
@@ -71,13 +78,13 @@ export function useDashboard() {
   const fetchWeighingTrend = useCallback(async () => {
     try {
       const response = await apiClient.get<WeighingTrendData[]>('/dashboard/weighing-trend', {
-        params: { months: 6 }
+        params: { year: selectedYear } // 2. Gửi năm lên API
       });
       setTrendData(response.data);
     } catch (error) {
       console.error("Lỗi khi lấy xu hướng cân:", error);
     }
-  }, []);
+  }, [selectedYear]);
 
   // Callback tổng hợp để làm mới TẤT CẢ dữ liệu
   const dataRefreshCallback = useCallback(async () => {
@@ -144,11 +151,15 @@ export function useDashboard() {
   // Dữ liệu cho biểu đồ xu hướng
   const weighingTrendData = useMemo(() => {
     return trendData.map(item => ({
-      date: item.date,
-      "Số lần cân": item.weighingCount
+      name: `Tháng ${item.Thang}`,
+      'Tổng nhập (kg)': item.TongKhoiLuongNhap,
+      'Tổng xuất (kg)': item.TongKhoiLuongXuat,
     }));
   }, [trendData]);
 
+  const handleSetSelectedYear = (year: string) => {
+    setSelectedYear(year);
+  };
   
   return {
     // Data
@@ -156,6 +167,8 @@ export function useDashboard() {
     twoLevelPieData,
     hourlyShiftData,
     weighingTrendData,
+    selectedYear,
+    setSelectedYear: handleSetSelectedYear,
    
     
     // Date selection
