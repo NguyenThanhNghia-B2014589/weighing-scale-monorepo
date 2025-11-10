@@ -17,6 +17,7 @@ export const getUnweighedSummary = async (req: Request, res: Response) => {
   const summaryQuery = `
    SELECT 
     W.OVNO,
+    W.FormulaF1,
     W.Memo,
     W.Qty AS totalTargetQty,
     COUNT(S.QRCode) AS totalPackages,
@@ -37,7 +38,7 @@ export const getUnweighedSummary = async (req: Request, res: Response) => {
     Outsole_VML_History AS H_xuat ON S.QRCode = H_xuat.QRCode AND H_xuat.loai = 'xuat'
    
    GROUP BY 
-    W.OVNO, W.Memo, W.Qty
+    W.OVNO, W.FormulaF1, W.Memo, W.Qty
    
    -- Chỉ hiển thị các OVNO có mã chưa xuất
    HAVING 
@@ -52,9 +53,10 @@ export const getUnweighedSummary = async (req: Request, res: Response) => {
   // Format dữ liệu trả về
   const responseData = result.recordset.map(item => ({
    ovNO: item.OVNO,
+   tenPhoiKeo: item.FormulaF1,
    memo: item.Memo,
    totalTargetQty: parseFloat(item.totalTargetQty.toFixed(2)),
-      totalPackages: item.totalPackages,
+   totalPackages: item.totalPackages,
    chuaCanNhap: item.chuaCanNhap,
    chuaCanXuat: item.chuaCanXuat
   }));

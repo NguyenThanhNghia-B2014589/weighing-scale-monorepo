@@ -86,7 +86,7 @@ function Header() {
                   </Link>
                   {user.role === 'admin' && (
                     <>
-                      <Link to="/admin" className={dropdownLinkClasses} onClick={toggleMenu}>
+                      <Link to="/history" className={dropdownLinkClasses} onClick={toggleMenu}>
                         <img src={gridPenIcon} alt="Lịch sử" className="h-5 w-5 filters invert" />
                         Lịch Sử Cân
                       </Link>

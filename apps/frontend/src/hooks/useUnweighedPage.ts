@@ -7,6 +7,7 @@ import apiClient from "../api/apiClient";
 // Định nghĩa kiểu dữ liệu trả về từ API mới
 export interface UnweighedSummary {
   ovNO: string;
+  tenPhoiKeo: string;
   memo: string | null;
   totalTargetQty: number;
   totalPackages: number;

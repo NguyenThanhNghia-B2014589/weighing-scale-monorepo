@@ -9,6 +9,7 @@ interface CardProps {
 const UnweighedSummaryCard: React.FC<CardProps> = ({ data }) => {
   const {
     ovNO,
+    tenPhoiKeo,
     memo,
     totalPackages,
     chuaCanNhap,
@@ -19,10 +20,16 @@ const UnweighedSummaryCard: React.FC<CardProps> = ({ data }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-5 gap-2 md:gap-4 p-4 bg-yellow-50 border border-yellow-300 rounded-lg shadow-sm font-semibold text-yellow-900">
     
-      {/* OVNO (2 cột) */}
-      <div className="col-span-1 md:col-span-2">
+      {/* OVNO (1 cột) */}
+      <div className="col-span-1 md:col-span-1">
         <span className="text-gray-600">OVNO: </span>
         <span className="font-bold">{ovNO}</span>
+      </div>
+
+      {/* Tên phôi keo (1 cột) */}
+      <div className="col-span-1 md:col-span-1">
+        <span className="text-gray-600">Tên Phôi Keo: </span>
+        <span className="font-bold">{tenPhoiKeo}</span>
       </div>
 
       {/* Chưa cân Nhập (1 cột) */}

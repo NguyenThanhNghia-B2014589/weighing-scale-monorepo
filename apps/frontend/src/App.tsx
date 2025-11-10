@@ -77,16 +77,16 @@ function App() {
           />
 
           <Route
-      path="/unweighed"
-      element={
-       <AdminProtectedRoute>
-        <UnweighedPage />
-       </AdminProtectedRoute>
-      }
-     />
+            path="/unweighed"
+            element={
+              <AdminProtectedRoute>
+                <UnweighedPage />
+              </AdminProtectedRoute>
+            }
+          />
 
           {/* Default */}
-          <Route path="/" element={<Navigate to="/WeighingStationNew" replace />} />
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
           {/* Catch-all */}
           <Route path="*" element={<NotFoundPage />} />
