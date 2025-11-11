@@ -5,7 +5,7 @@ import Spinner from '../ui/Spinner/Spinner';
 import Notification from '../ui/Notification/Notification';
 import WeighingStationSkeleton from "./WeighingStationSkeleton";
 import {
-  ScanLine,
+  ScanLine, Check, X,
 } from "lucide-react";
 
 // --- COMPONENT GIAO DIỆN MỚI ---
@@ -29,11 +29,23 @@ function WeighingStationNew() {
     isUiDisabled,
     tableHeaders,
     tableValues,
+    weighingType,
     handleCodeChange,
     handleCurrentWeightChange,
     handleScan,
     handleSubmit,
   } = useWeighingStation();
+
+  const pageBgClass = weighingType === 'nhap' 
+    ? 'bg-[#79cfbb]' 
+    : 'bg-sky-200';
+
+  const getSubmitButtonContent = () => {
+    if (isSubmit) return "Đang lưu...";
+    if (weighingType === 'nhap') return "Hoàn Tất Cân Nhập";
+    if (weighingType === 'xuat') return "Hoàn Tất Cân Xuất";
+    return "Hoàn tất"; // Mặc định (bị vô hiệu hóa)
+  };
 
   // HIỂN THỊ SKELETON NẾU isPageLoading LÀ TRUE
   if (isPageLoading) {
@@ -41,7 +53,8 @@ function WeighingStationNew() {
   }
 
   return (
-      <div className="bg-sky text-slate-800 max-w-auto mx-auto px-4 sm:px-6 lg:px-8 py-4">
+    
+      <div className={`${pageBgClass} text-slate-800 max-w-auto mx-auto px-4 sm:px-6 lg:px-8 py-4 transition-colors duration-300`}>
         <Notification 
           message={notificationMessage}
           type={notificationType}
@@ -71,9 +84,9 @@ function WeighingStationNew() {
                         <span className={`text-6xl sm:text-6xl font-black tabular-nums leading-none ${
                           currentWeight !== null && tableData ? (isWeightValid ? 'text-emerald-500' : 'text-rose-500') : 'text-slate-800'
                         }`}>
-                          {(currentWeight ?? 0).toFixed(1)}
+                          {(currentWeight ?? 0).toFixed(3)}
                         </span>
-                        <span className="pb-1 text-lg font-semibold text-slate-500">g</span>
+                        <span className="pb-1 text-lg font-semibold text-slate-500">kg</span>
                       </div>
                     </div>
                     {/* */}
@@ -110,36 +123,79 @@ function WeighingStationNew() {
 
             {/* Cột phải: Stat cards */}
             <div className="lg:w-1/3 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-4">
-              <StatCard label="Tiêu chuẩn" value={`${standardWeight.toFixed(1)} g`} />
+              <StatCard label="Tiêu chuẩn" value={`${standardWeight.toFixed(3)} g`} />
               <StatCard label="% tối đa" value={`${deviationPercent}%`} />
-              <StatCard label="MIN" value={`${minWeight.toFixed(1)} g`} subtle />
-              <StatCard label="MAX" value={`${maxWeight.toFixed(1)} g`} subtle />
+              <StatCard label="MIN" value={`${minWeight.toFixed(3)} g`} subtle />
+              <StatCard label="MAX" value={`${maxWeight.toFixed(3)} g`} subtle />
             </div>
           </section>
           
           <div className="flex items-center justify-end mb-6">
-            <button
-              className="w-full md:w-40 flex justify-center rounded-xl bg-[#00446e] px-40 py-3 text-white font-bold hover:bg-[#0b7abe] 
-                        transition-colors shadow-sm disabled:bg-slate-300 disabled:text-slate-500 active:scale-95 disabled:cursor-not-allowed whitespace-nowrap"
-                  
-              onClick={handleSubmit}
-              disabled={!isWeightValid || !tableData || isLoading }
-            >
-              {isSubmit ? "Đang lưu..." : "Hoàn tất"}
-            </button>
-          </div>
+      <button
+       className={`w-full md:w-auto flex justify-center rounded-xl px-12 py-3 text-white font-bold 
+            transition-all shadow-sm disabled:bg-slate-300 disabled:text-slate-500 active:scale-95 disabled:cursor-not-allowed whitespace-nowrap
+                        ${weighingType === 'nhap' ? 'bg-blue-600 hover:bg-blue-700' : ''}
+                        ${weighingType === 'xuat' ? 'bg-emerald-600 hover:bg-emerald-700' : ''}
+                      `}
+       onClick={handleSubmit}
+              // 4. VÔ HIỆU HÓA NÚT
+       disabled={!isWeightValid || !tableData || isSubmit || !weighingType}
+      >
+       {getSubmitButtonContent()}
+      </button>
+     </div>
+
+     {tableData && (
+            <section className="rounded-xl bg-white shadow-md p-5 sm:p-6 mb-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-4">Tóm Tắt Lệnh Sản Xuất: {tableData.ovNO}</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {/* Tổng Mục Tiêu */}
+                <InfoChip label="Tổng Mục Tiêu" value={`${tableData.totalTargetQty.toFixed(3)} g`} />
+                {/* Tổng Đã Nhập */}
+                <InfoChip label="Tổng Đã Nhập" value={`${tableData.totalNhapWeighed.toFixed(3)} g`} />
+                {/* Tổng Đã Xuất */}
+                <InfoChip label="Tổng Đã Xuất" value={`${tableData.totalXuatWeighed.toFixed(3)} g`} />
+                {/* Tồn Kho */}
+                <InfoChip 
+                  label="Tồn Kho (Nhập - Xuất)" 
+                  value={`${(tableData.totalNhapWeighed - tableData.totalXuatWeighed).toFixed(3)} g`} 
+                />
+                {/* Tiến độ mẻ */}
+                <InfoChip 
+                  label="Tiến độ (Đã cân nhập)" 
+                  value={`${tableData.x_WeighedNhap} / ${tableData.y_TotalPackages} mẻ`} 
+                />
+                {/* Trạng thái mã này */}
+                <div className="col-span-2 md:col-span-2">
+                  <InfoChip 
+                    label="Trạng thái mã này" 
+                    value={
+                      tableData.isNhapWeighed 
+                        ? (tableData.isXuatWeighed ? 'Đã hoàn thành' : 'Đã nhập, chờ xuất') 
+                        : 'Chưa cân nhập'
+                    } 
+                    icon={
+                      tableData.isNhapWeighed 
+                        ? <Check className="w-5 h-5 text-green-500" />
+                        : <X className="w-5 h-5 text-red-500" />
+                    }
+                  />
+                </div>
+              </div>
+            </section>
+          )}
 
           {/* Detail table */}
         <section className="rounded-xl bg-white shadow-md overflow-hidden mb-6">
           
           {/* Phần Header của bảng */}
-          <div className="hidden md:grid grid-cols-6 border-t border-r border-gray-300">
+          <div className="hidden md:grid grid-cols-7 border-t border-r border-gray-300">
             {tableHeaders.map((header) => ( <div key={header} className="bg-sky-400 text-black font-semibold text-center p-3 border-b border-l border-gray-300">{header}</div> ))}
           </div>
 
           {/* --- PHẦN BODY CỦA BẢNG --- */}
           {tableData ? (
-            <div className="grid grid-cols-1 md:grid-cols-6 border-r border-b border-gray-300 md:border-t-0">
+            <div className="grid grid-cols-1 md:grid-cols-7 border-r border-b border-gray-300 md:border-t-0">
               {tableValues.map((value, index) => (
                 <div 
                   key={index} 
@@ -192,6 +248,18 @@ function StatCard({ label, value, icon, subtle = false }: { label: string; value
         {icon}
       </div>
       <p className="mt-1 text-4xl font-extrabold tabular-nums">{value}</p>
+    </div>
+  );
+}
+
+function InfoChip({ label, value, icon }: { label: string; value: string | number; icon?: React.ReactNode }) {
+  return (
+    <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+      <p className="text-xs font-medium text-gray-500">{label}</p>
+      <div className="flex items-center gap-2 mt-1">
+        {icon}
+        <p className="text-lg font-bold text-gray-800">{value}</p>
+      </div>
     </div>
   );
 }
