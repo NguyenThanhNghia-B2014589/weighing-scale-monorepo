@@ -8,7 +8,7 @@ import { useSettings } from '../../hooks/useSettings';
 
 import logoIcon from '../../assets/logo.png';
 import logoutIcon from '../../assets/logout.png';
-import homeIcon from '../../assets/home.svg';
+import homeIcon from '../../assets/weight-scale.png';
 import gridPenIcon from '../../assets/grid_pen.svg';
 import controlPanelIcon from '../../assets/control_panel.svg';
 import unweigh from '../../assets/document-gear.svg'
@@ -44,7 +44,7 @@ function Header() {
           <nav className="hidden md:flex items-center gap-1 relative">
             <NavLink to="/WeighingStationNew" title="Trạm Cân">
               <span className="relative z-10">
-                <img src={homeIcon} alt="Trang chủ" className="h-6 w-6 brightness-0 invert" />
+                <img src={homeIcon} alt="Trang chủ" className="h-6 w-6 " />
               </span>
             </NavLink>
             {user.role === 'admin' && (
