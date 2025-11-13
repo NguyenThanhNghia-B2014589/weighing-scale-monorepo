@@ -1,17 +1,12 @@
-
 import React from "react";
 import { useWeighingStation } from "../../hooks/useWeighingStation";
 import Spinner from '../ui/Spinner/Spinner';
 import Notification from '../ui/Notification/Notification';
 import WeighingStationSkeleton from "./WeighingStationSkeleton";
-import {
-  ScanLine,
-  Check, X
-} from "lucide-react";
+import { ScanLine, Check, X, Scale } from "lucide-react";
 
 function WeighingStationNew() {
   const {
-    // Lấy tất cả state
     standardWeight,
     deviationPercent,
     currentWeight,
@@ -30,6 +25,8 @@ function WeighingStationNew() {
     tableHeaders,
     tableValues,
     weighingType,
+    scaleConnected,
+    scaleEnabled,
     handleCodeChange,
     handleCurrentWeightChange,
     handleScan,
@@ -58,55 +55,74 @@ function WeighingStationNew() {
       />
       
       {isUiDisabled && (
-      <div className="fixed inset-0 lg:scale-125 bg-black bg-opacity-25 z-40 "></div>
+        <div className="fixed inset-0 lg:scale-125 bg-black bg-opacity-25 z-40"></div>
       )}
       
-      <h1 className="text-3xl font-bold mb-6 text-gray-800">Trạm Cân</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-3xl font-bold text-gray-800">Trạm Cân</h1>
+        
+        {/* Trạng thái cân */}
+        {scaleEnabled && (
+          <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-sm">
+            <Scale className={`w-5 h-5 ${scaleConnected ? 'text-green-500' : 'text-gray-400'}`} />
+            <div className="flex flex-col">
+              <span className="text-xs font-medium text-gray-500">Cân tự động</span>
+              <span className={`text-sm font-bold ${scaleConnected ? 'text-green-600' : 'text-red-600'}`}>
+                {scaleConnected ? 'Đã kết nối' : 'Chưa kết nối'}
+              </span>
+            </div>
+            <div className={`w-2 h-2 rounded-full ${scaleConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+          </div>
+        )}
+      </div>
 
-      {/* --- KHU VỰC "WEIGHT + ACTIONS" (ĐÃ SỬA) --- */}
       <section className="flex flex-col lg:flex-row gap-5 mb-6">
         
-        {/* 1. CỘT TRÁI: BIG WEIGHT CARD (ĐÃ SỬA LẠI HOÀN TOÀN) */}
+        {/* Cột trái: Big Weight Card */}
         <div className="lg:w-2/3">
           <div className="rounded-xl bg-white shadow-md p-5 sm:p-6 h-full flex flex-col justify-between"> 
-          
-            {/* --- Bố cục mới bên trong card --- */}
             <div>
-              {/* Dòng 1: Tiêu đề và Input */}
               <div className="flex justify-between items-center mb-2">
-                <p className="text-s font-medium text-slate-500">Trọng lượng hiện tại</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-s font-medium text-slate-500">Trọng lượng hiện tại</p>
+                  {scaleConnected && (
+                    <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-semibold">
+                      AUTO
+                    </span>
+                  )}
+                </div>
                     
-                {/* Input cân nặng (Style mới) */}
-                <label className="flex items-center gap-2">
-                    <span className="text-sm text-slate-500 hidden sm:inline">Nhập (test):</span>
+                {/* Input cân nặng - chỉ hiện khi không dùng cân tự động */}
+                {!scaleConnected && (
+                  <label className="flex items-center gap-2">
+                    <span className="text-sm text-slate-500 hidden sm:inline">Nhập thủ công:</span>
                     <input
                       type="number"
-                      step="0.1"
+                      step="0.001"
                       value={currentWeight ?? ''}
                       onChange={handleCurrentWeightChange}
                       className="w-36 rounded-lg border border-gray-300 bg-white px-3 py-2 text-right font-semibold tabular-nums focus:outline-none focus:ring-2 focus:ring-sky-400"
                       disabled={!tableData || isLoading}
+                      placeholder="0.000"
                     />
-                </label>
+                  </label>
+                )}
               </div>
                   
-              {/* Dòng 2: Trọng lượng lớn */}
+              {/* Trọng lượng lớn */}
               <div className="flex items-end gap-3 mb-4">
-                <span className={`text-7xl font-black tabular-nums leading-none ${
+                <span className={`text-7xl font-black tabular-nums leading-none transition-colors duration-300 ${
                   currentWeight !== null && tableData ? (isWeightValid ? 'text-emerald-500' : 'text-rose-500') : 'text-slate-800'
                 }`}>
                   {(currentWeight ?? 0).toFixed(3)}
                 </span>
-
                 <span className="pb-2 text-2xl font-semibold text-slate-500">Kg</span>
               </div>
 
               <hr className="my-4 border-gray-200" />
 
-              {/* Dòng 3: MIN / MAX */}
+              {/* MIN / MAX */}
               <div className="flex flex-col sm:flex-row justify-between items-start">
-                    
-                {/* Nhóm MIN/MAX */}
                 <div className="flex gap-20">
                   <div>
                     <p className="text-s font-medium text-slate-500">MIN</p>
@@ -126,19 +142,15 @@ function WeighingStationNew() {
 
             <hr className="my-4 border-gray-200" />
 
-            {/* Dòng 4: Thanh chênh lệch (Đã sửa) */}
+            {/* Thanh chênh lệch */}
             <div>
-              {/* Label chênh lệch */}
               <span className={`text-sm font-semibold ${
                 isWeightValid ? "text-emerald-700" : "text-rose-700"
               }`}>
-                  
                 Chênh lệch: {deviationPct}%
               </span>
-
-              {/* Thanh bar */}
               <div className="flex-1 h-2 rounded-full bg-slate-200 overflow-hidden mt-1">
-                <div className={(isWeightValid ? "bg-emerald-500" : "bg-rose-500") + " h-full transition-all"}
+                <div className={(isWeightValid ? "bg-emerald-500" : "bg-rose-500") + " h-full transition-all duration-300"}
                   style={{ width: `${Math.min(100, Math.abs((deviationPct / deviationPercent) * 50 + 50))}%` }}
                 />
               </div>
@@ -146,11 +158,9 @@ function WeighingStationNew() {
           </div>
         </div>
 
-        {/* 3. Cột phải: Stat cards & Scan (ĐÃ SỬA) */}
+        {/* Cột phải: Stat cards & Scan */}
         <div className="lg:w-1/3 flex flex-col gap-4">
-          {/* Stat cards (Chỉ 2 card) */}
           <div className="grid grid-cols-1 gap-4">
-
             <div className="rounded-xl p-4 shadow-md border bg-white border-slate-100">
               <label htmlFor="deviation-select" className="text-sm font-semibold uppercase tracking-wide text-slate-500">% TỐI ĐA</label>
               <select
@@ -166,7 +176,7 @@ function WeighingStationNew() {
             </div>
           </div>
                 
-          {/* Scan Area (ĐÃ DI CHUYỂN LÊN) */}
+          {/* Scan Area */}
           <div className="rounded-xl bg-white shadow-md p-5 sm:p-6 flex-1">
             <div className="flex flex-col h-full justify-between gap-3">
               <input
@@ -187,8 +197,8 @@ function WeighingStationNew() {
             </div>
           </div>
 
-          {/* --- NÚT HOÀN TẤT --- */}
-          <div className="flex items-center mb-6"> 
+          {/* Nút hoàn tất */}
+          <div className="flex items-center"> 
             <button
               className={`w-full flex justify-center rounded-xl px-12 py-3 text-white text-lg font-bold 
                 transition-all shadow-sm disabled:bg-slate-300 disabled:text-slate-500 active:scale-95 disabled:cursor-not-allowed whitespace-nowrap
@@ -203,31 +213,23 @@ function WeighingStationNew() {
           </div>
         </div>
       </section>
-      
-      
 
-      {/* --- KHU VỰC TÓM TẮT OVNO (Giữ nguyên) --- */}
+      {/* Tóm tắt OVNO */}
       {tableData && (
         <section className="rounded-xl bg-white shadow-md p-5 sm:p-6 mb-6">
           <h3 className="text-xl font-bold text-gray-800 mb-4">Tóm Tắt Lệnh Sản Xuất: {tableData.ovNO}</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {/* Tổng Mục Tiêu */}
             <InfoChip label="Tổng Mục Tiêu" value={`${tableData.totalTargetQty.toFixed(3)} kg`} />
-            {/* Tổng Đã Nhập */}
             <InfoChip label="Tổng Đã Nhập" value={`${tableData.totalNhapWeighed.toFixed(3)} kg`} />
-            {/* Tổng Đã Xuất */}
             <InfoChip label="Tổng Đã Xuất" value={`${tableData.totalXuatWeighed.toFixed(3)} kg`} />
-            {/* Tồn Kho */}
             <InfoChip 
               label="Tồn Kho (Nhập - Xuất)" 
               value={`${(tableData.totalNhapWeighed - tableData.totalXuatWeighed).toFixed(3)} kg`} 
             />
-            {/* Tiến độ mẻ */}
             <InfoChip 
               label="Tiến độ (Đã cân nhập)" 
               value={`${tableData.x_WeighedNhap} / ${tableData.y_TotalPackages} mẻ`} 
             />
-            {/* Trạng thái mã này */}
             <div className="col-span-2 md:col-span-2">
               <InfoChip 
                 label="Trạng thái mã này" 
@@ -249,13 +251,14 @@ function WeighingStationNew() {
 
       {/* Detail table */}
       <section className="rounded-xl bg-white shadow-md overflow-hidden mb-6">
-            
-        {/* Phần Header của bảng */}
         <div className="hidden md:grid grid-cols-7 border-t border-r border-gray-300">
-          {tableHeaders.map((header) => ( <div key={header} className="bg-sky-400 text-black font-semibold text-center p-3 border-b border-l border-gray-300">{header}</div> ))}
+          {tableHeaders.map((header) => ( 
+            <div key={header} className="bg-sky-400 text-black font-semibold text-center p-3 border-b border-l border-gray-300">
+              {header}
+            </div> 
+          ))}
         </div>
 
-        {/* --- PHẦN BODY CỦA BẢNG --- */}
         {tableData ? (
           <div className="grid grid-cols-1 md:grid-cols-7 border-r border-b border-gray-300 md:border-t-0">
             {tableValues.map((value, index) => (
@@ -278,31 +281,16 @@ function WeighingStationNew() {
   );
 }
 
-  // --- CÁC COMPONENT PHỤ ---
-
-  /*function StatCard({ label, value, icon, subtle = false }: { label: string; value: string | number; icon?: React.ReactNode; subtle?: boolean }) {
-    return (
-      <div className={`rounded-xl p-4 shadow-md border ${subtle ? "bg-white border-slate-100" : "bg-gradient-to-br from-sky-50 to-white border-sky-100"}`}>
-        <div className="flex items-center gap-2">
-          <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">{label}</p>
-          {icon}
-        </div>
-        <p className="mt-1 text-4xl font-extrabold tabular-nums">{value}</p>
+function InfoChip({ label, value, icon }: { label: string; value: string | number; icon?: React.ReactNode }) {
+  return (
+    <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+      <p className="text-xs font-medium text-gray-500">{label}</p>
+      <div className="flex items-center gap-2 mt-1">
+        {icon}
+        <p className="text-lg font-bold text-gray-800">{value}</p>
       </div>
-    );
-  }*/
-
-  function InfoChip({ label, value, icon }: { label: string; value: string | number; icon?: React.ReactNode }) {
-    return (
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-        <p className="text-xs font-medium text-gray-500">{label}</p>
-        <div className="flex items-center gap-2 mt-1">
-          {icon}
-          <p className="text-lg font-bold text-gray-800">{value}</p>
-        </div>
-      </div>
-    );
-  }
-
+    </div>
+  );
+}
 
 export default WeighingStationNew;

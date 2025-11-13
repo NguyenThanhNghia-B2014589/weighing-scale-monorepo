@@ -33,13 +33,19 @@ export function useLoginPage() {
         role: 'admin' // Mặc định là user, nếu có logic phân quyền thì cập nhật sau
       };
       
+      // 🔹 Initialize scale state khi login (lần đầu sẽ chưa có)
+      if (!localStorage.getItem('scaleEnabled')) {
+        localStorage.setItem('scaleEnabled', 'false');
+        console.log('[LoginPage] Initialize scaleEnabled = false');
+      }
+      
       // Lưu thông tin vào AuthContext (không cần token)
       login(user, ''); // Token để trống vì backend không yêu cầu
       
       showNotification(`Chào mừng ${user.userName}!`, 'success');
       
       setTimeout(() => {
-        navigate('/dashboard');
+        navigate('/WeighingStationNew');
       }, 1500);
 
     } catch (error) {

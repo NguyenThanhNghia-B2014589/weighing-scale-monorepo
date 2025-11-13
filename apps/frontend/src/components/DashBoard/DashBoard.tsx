@@ -139,7 +139,7 @@ function DashboardPage() {
             </div>
           </div>
           
-          <ResponsiveContainer width="100%" height={400}>
+          <ResponsiveContainer width="100%" height={500}>
             <BarChart data={hourlyShiftData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="Ca" /> {/* <-- Sửa dataKey */}
@@ -166,7 +166,7 @@ function DashboardPage() {
           
           {twoLevelPieData ? (
             <>
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={400}>
                 <PieChart>
                   {/* Vòng trong - Tổng quan */}
                   <Pie
@@ -187,8 +187,8 @@ function DashboardPage() {
                     data={twoLevelPieData.outerData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={70}
-                    outerRadius={100}
+                    innerRadius={80}
+                    outerRadius={120}
                     dataKey="value"
                     label={(props: any) => {
                       const { name, value, percent } = props;
@@ -201,7 +201,7 @@ function DashboardPage() {
                   </Pie>
                   
                   <Tooltip formatter={(value: number) => `${value.toFixed(2)} kg`} />
-                  <Legend />
+                  {/*<Legend />*/}
                 </PieChart>
               </ResponsiveContainer>
 
@@ -265,7 +265,7 @@ function DashboardPage() {
           </div>
           
           {/* BIỂU ĐỒ AREA */}
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={400}>
             <AreaChart data={weighingTrendData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorNhap" x1="0" y1="0" x2="0" y2="1">
